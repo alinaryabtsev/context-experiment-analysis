@@ -1,17 +1,7 @@
 import sqlite3
 import sys
 import os
-
-REWARD = "reward"
-RANK = "rank"
-CONDITION = "condition"
-STIM1 ="stim1"
-STIM2 ="stim2"
-FEEDBACK = "feedback"
-CHOICE = "choice"
-OUTCOME = "outcome"
-CHOICE_TIME = "choice_time"
-STIM_TIME = "stim_time"
+import constants
 
 SQL_QUERY_GET_ALL_STIMULI = "SELECT number, reward, rank, condition FROM stimuli " \
                             "WHERE condition >= 1 AND condition <= 4"
@@ -29,18 +19,33 @@ class DataBaseManager:
         self.curr = self.conn.cursor()
 
     def get_all_stimuli(self):
+        """
+        :return: a dictionary representing stimuli table as follows:
+                { stimuli number : { REWARD: reward value of stimuli,
+                                     RANK: rank value of the stimuli,
+                                     CONDITION: condition the stimuli relates to }
+                   .... }
+        """
         self.curr.execute(SQL_QUERY_GET_ALL_STIMULI)
         stimuli_data = self.curr.fetchall()
         stimuli = dict()
         for row in stimuli_data:
             stimuli[row[0]] = {
-                REWARD: row[1],
-                RANK: row[2],
-                CONDITION: row[3]
+                constants.REWARD: row[1],
+                constants.RANK: row[2],
+                constants.CONDITION: row[3]
             }
         return stimuli
 
     def get_all_trials_with_stimuli(self):
+        """
+        :return: a dictionary representing trials table as follows:
+                { block number: [ {STIM1: stimuli 1 number, STIM2: stimuli 2 number,
+                                   FEEDBACK: 0/1, CHOICE: 0/1 (first/second stimuli), OUTCOME: 0/1,
+                                   CHOICE_TIME: UTC time when chosen, STIM_TIME: UTC time when
+                                   appeared} ...]
+                .... }
+        """
         self.curr.execute(SQL_QUERY_GET_TRIALS)
         trials_data = self.curr.fetchall()
         trials = dict()
@@ -48,13 +53,13 @@ class DataBaseManager:
             if row[0] not in trials:
                 trials[row[0]] = []
             data = {
-                STIM1: row[1],
-                STIM2: row[2],
-                FEEDBACK: row[3],
-                CHOICE: row[4],
-                OUTCOME: row[5],
-                CHOICE_TIME: row[6],
-                STIM_TIME: row[7]
+                constants.STIM1: row[1],
+                constants.STIM2: row[2],
+                constants.FEEDBACK: row[3],
+                constants.CHOICE: row[4],
+                constants.OUTCOME: row[5],
+                constants.CHOICE_TIME: row[6],
+                constants.STIM_TIME: row[7]
             }
             trials[row[0]].append(data)
         return trials
