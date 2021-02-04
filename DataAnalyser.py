@@ -54,9 +54,9 @@ class DataAnalyser:
 
     def get_rt_of_correct_or_incorrect_trials(self, correct, condition=None):
         if condition:
-            filtered_stimuli = self.stimuli.loc(self.stimuli[constants.CONDITION] == condition)
-            trials_filtered = self.trials.loc(self.trials[constants.STIM1].isin(
-                filtered_stimuli[constants.NUMBER]))
+            filtered_stimuli = self.stimuli.loc[self.stimuli[constants.CONDITION] == condition]
+            trials_filtered = self.trials.loc[(self.trials[constants.STIM1].isin(
+                filtered_stimuli[constants.NUMBER]))]
         else:
             trials_filtered = self.trials
         reaction_times, blocks = [], []
@@ -72,16 +72,22 @@ class DataAnalyser:
         d = {"blocks": blocks, "rt": reaction_times}
         return pd.DataFrame(data=d)
 
-    def get_reaction_time_mean_all_experiment(self):
-        correct = self.get_rt_of_correct_or_incorrect_trials(True)
-        incorrect = self.get_rt_of_correct_or_incorrect_trials(False)
+    @staticmethod
+    def _get_rt_means_data_frame(correct, incorrect):
         grouper_correct = correct.groupby("blocks")
         grouper_incorrect = incorrect.groupby("blocks")
         df = grouper_correct["rt"].mean().to_frame(name="RT mean").reset_index()
-        df["correct answer"] = True
+        df["answer correctness"] = True
         df1 = grouper_incorrect["rt"].mean().to_frame(name="RT mean").reset_index()
-        df1["correct answer"] = False
-        # d = {"correct trials": grouper_correct["rt"].mean().to_frame(name="mean RT").reset_index(),
-        #      "incorrect trials": grouper_incorrect["rt"].mean().to_frame(name="mean "
-        #                                                                       "RT").reset_index()}
+        df1["answer correctness"] = False
         return pd.concat([df, df1])
+
+    def get_reaction_time_mean_all_experiment(self):
+        correct = self.get_rt_of_correct_or_incorrect_trials(True)
+        incorrect = self.get_rt_of_correct_or_incorrect_trials(False)
+        return DataAnalyser._get_rt_means_data_frame(correct, incorrect)
+
+    def get_reaction_time_mean_by_condition(self, condition):
+        correct = self.get_rt_of_correct_or_incorrect_trials(True, condition)
+        incorrect = self.get_rt_of_correct_or_incorrect_trials(False, condition)
+        return DataAnalyser._get_rt_means_data_frame(correct, incorrect)
