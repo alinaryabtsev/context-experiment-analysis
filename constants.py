@@ -22,6 +22,10 @@ NO_FEEDBACK = 0
 FIRST = 0
 SECOND = 1
 
+# stimuli success values
+SUCCESS = 1
+FAILURE = 0
+
 # general
 CONDITIONS = [1, 2, 3, 4]
 PROBABILITIES = {1: "1", 2/3: "2/3", 1/3: "1/3", 0: "0"}

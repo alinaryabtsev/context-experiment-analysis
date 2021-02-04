@@ -61,11 +61,9 @@ class DataAnalyser:
             trials_filtered = self.trials
         reaction_times, blocks = [], []
         if correct:
-            trials = trials_filtered.loc[trials_filtered[constants.CHOICE] ==
-                                         trials_filtered[constants.OUTCOME]]
+            trials = trials_filtered.loc[trials_filtered[constants.OUTCOME] == constants.SUCCESS]
         else:
-            trials = trials_filtered.loc[trials_filtered[constants.CHOICE] !=
-                                         trials_filtered[constants.OUTCOME]]
+            trials = trials_filtered.loc[trials_filtered[constants.OUTCOME] == constants.FAILURE]
         for i, trial in trials.iterrows():
             blocks.append(trial[constants.BLOCK])
             reaction_times.append(trial[constants.CHOICE_TIME] - trial[constants.STIM_TIME])
