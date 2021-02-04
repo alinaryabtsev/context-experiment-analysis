@@ -9,31 +9,33 @@ class DataAnalyser:
         self.stimuli = self.db.get_all_stimuli()
 
     def filter_trials_by_condition_and_probability(self, condition, probability, feedback):
-        filtered_stimuli = self.stimuli.loc[(self.stimuli[constants.CONDITION] == condition) &
-                                            (self.stimuli[constants.REWARD] == probability)]
-        return self.trials.loc[
-            ((self.trials[constants.STIM1].isin(filtered_stimuli[constants.NUMBER]) &
-              (self.trials[constants.OUTCOME] == constants.FIRST)) |
-             (self.trials[constants.STIM2].isin(filtered_stimuli[constants.NUMBER]) &
-              (self.trials[constants.OUTCOME] == constants.SECOND))) &
-            (self.trials[constants.FEEDBACK] == feedback)]
+        filtered_stimuli = self.stimuli.loc[(self.stimuli[constants.CONDITION] == condition)]
+        filtered_trials = self.trials.loc[(self.trials[constants.FEEDBACK] == feedback)]
+        s = filtered_stimuli.set_index(constants.NUMBER)[constants.REWARD]
+        m = filtered_trials[
+            (filtered_trials[constants.STIM1].map(s).eq(probability) &
+             (filtered_trials[constants.STIM1].map(s) > filtered_trials[constants.STIM2].map(s))) |
+            (filtered_trials[constants.STIM2].map(s).eq(probability) &
+             (filtered_trials[constants.STIM2].map(s) > filtered_trials[constants.STIM1].map(s)))]
+        return m
 
     def filter_trials_by_condition_and_rank(self, condition, rank, feedback):
-        filtered_stimuli = self.stimuli.loc[(self.stimuli[constants.CONDITION] == condition) &
-                                            (self.stimuli[constants.RANK] == rank)]
-        return self.trials.loc[
-            ((self.trials[constants.STIM1].isin(filtered_stimuli[constants.NUMBER]) &
-              (self.trials[constants.OUTCOME] == constants.FIRST)) |
-             (self.trials[constants.STIM2].isin(filtered_stimuli[constants.NUMBER]) &
-              (self.trials[constants.OUTCOME] == constants.SECOND))) &
-            (self.trials[constants.FEEDBACK] == feedback)]
+        filtered_stimuli = self.stimuli.loc[(self.stimuli[constants.CONDITION] == condition)]
+        filtered_trials = self.trials.loc[(self.trials[constants.FEEDBACK] == feedback)]
+        s = filtered_stimuli.set_index(constants.NUMBER)[constants.RANK]
+        m = filtered_trials[
+            (filtered_trials[constants.STIM1].map(s).eq(rank) &
+             (filtered_trials[constants.STIM1].map(s) > filtered_trials[constants.STIM2].map(s))) |
+            (filtered_trials[constants.STIM2].map(s).eq(rank) &
+             (filtered_trials[constants.STIM2].map(s) > filtered_trials[constants.STIM1].map(s)))]
+        return m
 
     def get_trials_accuracy_by_condition_and_probability(self, condition, probability, feedback):
         filtered = self.filter_trials_by_condition_and_probability(condition, probability, feedback)
         blocks = list(set(filtered[constants.BLOCK].values))
         success_rate = []
         for block in blocks:
-            s = len(filtered[(filtered[constants.CHOICE] == filtered[constants.OUTCOME]) &
+            s = len(filtered[(filtered[constants.OUTCOME] == constants.SUCCESS) &
                              (filtered[constants.BLOCK] == block)])
             a = len(filtered[filtered[constants.BLOCK] == block])
             success_rate.append(s / a)
@@ -45,7 +47,7 @@ class DataAnalyser:
         blocks = list(set(filtered[constants.BLOCK].values))
         success_rate = []
         for block in blocks:
-            s = len(filtered[(filtered[constants.CHOICE] == filtered[constants.OUTCOME]) &
+            s = len(filtered[(filtered[constants.OUTCOME] == constants.SUCCESS) &
                              (filtered[constants.BLOCK] == block)])
             a = len(filtered[filtered[constants.BLOCK] == block])
             success_rate.append(s / a)
@@ -58,7 +60,7 @@ class DataAnalyser:
             trials_filtered = self.trials.loc[(self.trials[constants.STIM1].isin(
                 filtered_stimuli[constants.NUMBER]))]
         else:
-            trials_filtered = self.trials
+            trials_filtered = self.trials.loc[self.trials[constants.FEEDBACK] == feedback]
         reaction_times, blocks = [], []
         if correct:
             trials = trials_filtered.loc[trials_filtered[constants.OUTCOME] == constants.SUCCESS]

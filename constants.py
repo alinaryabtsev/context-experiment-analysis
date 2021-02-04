@@ -31,4 +31,5 @@ CONDITIONS = [1, 2, 3, 4]
 PROBABILITIES = {1: "1", 2/3: "2/3", 1/3: "1/3", 0: "0"}
 PROBABILITIES_MATTER = {1: "1", 2/3: "2/3", 1/3: "1/3"}
 RANKS = [2, 1, 0]
+RANKS_MATTER = [2, 1]
 

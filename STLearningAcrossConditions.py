@@ -30,7 +30,7 @@ class ShortTermLearningAcrossConditions:
         fig, axs = plt.subplots(nrows=3, figsize=(6, 18))
         fig.suptitle(f"accuracy over time condition {condition} for possible ranks")
         i = 0
-        for rank in constants.RANKS:
+        for rank in constants.RANKS_MATTER:
             df = self.da.get_trials_accuracy_by_condition_and_rank(condition, rank,
                                                                    constants.WITH_FEEDBACK)
             sns_plot = sns.scatterplot(x="blocks", y="success rate", data=df, ax=axs[i])
