@@ -1,31 +1,45 @@
 import matplotlib.pyplot as plt
+import seaborn as sns
 from DataAnalyser import DataAnalyser
-
-WITH_FEEDBACK = 1
-NO_FEEDBACK = 0
-
+import constants
+sns.set_style("darkgrid", {"axes.facecolor": ".9"})
+sns.set_context("paper")
 
 
 class ShortTermLearningAcrossConditions:
     def __init__(self, db):
         self.da = DataAnalyser(db)
 
-    def accuracy_over_time_condition(self, condition):
-        trials = self.da.get_trials_filtered_by_condition_and_feedback(WITH_FEEDBACK, condition)
-        # stimuli = self.da.get_stimuli()
+    def accuracy_over_time_condition_per_probability(self, condition):
+        fig, axs = plt.subplots(nrows=3, figsize=(6, 18))
+        fig.suptitle(f"accuracy over time condition {condition} for possible probabilities")
+        i = 0
+        for probability, p in constants.PROBABILITIES_MATTER.items():
+            df = self.da.get_trials_accuracy_by_condition_and_probability(condition, probability,
+                                                                          constants.WITH_FEEDBACK)
+            sns_plot = sns.scatterplot(x="blocks", y="success rate", data=df, ax=axs[i])
+            axs[i].set_title(f"accuracy over time - probability {p}")
+            i += 1
+        plt.savefig(f"accuracy_over_time_by_probabilities_condition_{condition}.pdf")
 
-        plt.plot()
-        plt.title(f"Accuracy over time condition {condition}")
-        plt.show()
+    def accuracy_over_time_by_probabilities(self):
+        for condition in constants.CONDITIONS:
+            self.accuracy_over_time_condition_per_probability(condition)
 
-    def reaction_time_over_accurate_choices_condition_1(self):
-        trials = self.da.get_trials_filtered_by_condition_and_feedback(1, 1)
-        chosen_right = DataAnalyser.filter_by_success(trials)
+    def accuracy_over_time_condition_per_rank(self, condition):
+        fig, axs = plt.subplots(nrows=3, figsize=(6, 18))
+        fig.suptitle(f"accuracy over time condition {condition} for possible ranks")
+        i = 0
+        for rank in constants.RANKS:
+            df = self.da.get_trials_accuracy_by_condition_and_rank(condition, rank,
+                                                                   constants.WITH_FEEDBACK)
+            sns_plot = sns.scatterplot(x="blocks", y="success rate", data=df, ax=axs[i])
+            axs[i].set_title(f"accuracy over time - rank {rank}")
+            i += 1
+        plt.savefig(f"accuracy_over_time_by_ranks_condition_{condition}.pdf")
 
-
-
-    def accuracy_over_time_by_rank_of_stimuli_condition_1(self):
-        trials = self.da.get_trials_filtered_by_condition_and_feedback(1, 1)
-
+    def accuracy_over_time_by_ranks(self):
+        for condition in constants.CONDITIONS:
+            self.accuracy_over_time_condition_per_rank(condition)
 
 
