@@ -54,11 +54,13 @@ class DataAnalyser:
         d = {"blocks": blocks, "success rate": success_rate}
         return pd.DataFrame(data=d)
 
-    def get_rt_of_correct_or_incorrect_trials(self, correct, condition=None):
+    def get_rt_of_correct_or_incorrect_trials(self, correct, condition=None,
+                                              feedback=constants.WITH_FEEDBACK):
         if condition:
             filtered_stimuli = self.stimuli.loc[self.stimuli[constants.CONDITION] == condition]
             trials_filtered = self.trials.loc[(self.trials[constants.STIM1].isin(
-                filtered_stimuli[constants.NUMBER]))]
+                filtered_stimuli[constants.NUMBER])) & (self.trials[
+                                                            constants.FEEDBACK] == feedback)]
         else:
             trials_filtered = self.trials.loc[self.trials[constants.FEEDBACK] == feedback]
         reaction_times, blocks = [], []
