@@ -1,59 +1,87 @@
+import constants
+import pandas as pd
+
+
 class DataAnalyser:
     def __init__(self, db):
         self.db = db
         self.trials = self.db.get_all_trials_with_stimuli()
         self.stimuli = self.db.get_all_stimuli()
 
-    # DEBUG
-    def show_trials(self):
-        rows = DataAnalyser.filter_trials_by_feedback_value(self.db.get_all_trials_with_stimuli(),1)
-        pows = DataAnalyser.filter_trials_by_condition(rows, self.stimuli, 1)
-        for block, lst in pows.items():
-            print("Length of block is", len(lst))
-            print(block, " ", lst)
+    def filter_trials_by_condition_and_probability(self, condition, probability, feedback):
+        filtered_stimuli = self.stimuli.loc[(self.stimuli[constants.CONDITION] == condition) &
+                                            (self.stimuli[constants.REWARD] == probability)]
+        return self.trials.loc[
+            ((self.trials[constants.STIM1].isin(filtered_stimuli[constants.NUMBER]) &
+              (self.trials[constants.OUTCOME] == constants.FIRST)) |
+             (self.trials[constants.STIM2].isin(filtered_stimuli[constants.NUMBER]) &
+              (self.trials[constants.OUTCOME] == constants.SECOND))) &
+            (self.trials[constants.FEEDBACK] == feedback)]
 
-    @staticmethod
-    def filter_trials_by_condition(trials_data, stimuli_data, condition):
-        filtered = dict()
-        for block, trials in trials_data.items():
-            filtered[block] = []
-            for trial in trials:
-                if stimuli_data[trial["stim1"]]["condition"] == condition:
-                    filtered[block].append(trial)
-            if not filtered[block]:
-                filtered.pop(block)
-        return filtered
+    def filter_trials_by_condition_and_rank(self, condition, rank, feedback):
+        filtered_stimuli = self.stimuli.loc[(self.stimuli[constants.CONDITION] == condition) &
+                                            (self.stimuli[constants.RANK] == rank)]
+        return self.trials.loc[
+            ((self.trials[constants.STIM1].isin(filtered_stimuli[constants.NUMBER]) &
+              (self.trials[constants.OUTCOME] == constants.FIRST)) |
+             (self.trials[constants.STIM2].isin(filtered_stimuli[constants.NUMBER]) &
+              (self.trials[constants.OUTCOME] == constants.SECOND))) &
+            (self.trials[constants.FEEDBACK] == feedback)]
 
-    @staticmethod
-    def filter_trials_by_feedback_value(trials_data, feedback):
-        filtered = dict()
-        for block, trials in trials_data.items():
-            filtered[block] = []
-            for trial in trials:
-                if trial["feedback"] == feedback:
-                    filtered[block].append(trial)
-            if not filtered[block]:
-                filtered.pop(block)
-        return filtered
+    def get_trials_accuracy_by_condition_and_probability(self, condition, probability, feedback):
+        filtered = self.filter_trials_by_condition_and_probability(condition, probability, feedback)
+        blocks = list(set(filtered[constants.BLOCK].values))
+        success_rate = []
+        for block in blocks:
+            s = len(filtered[(filtered[constants.CHOICE] == filtered[constants.OUTCOME]) &
+                             (filtered[constants.BLOCK] == block)])
+            a = len(filtered[filtered[constants.BLOCK] == block])
+            success_rate.append(s / a)
+        d = {"blocks": blocks, "success rate": success_rate}
+        return pd.DataFrame(data=d)
 
-    def get_trials_filtered_by_condition_and_feedback(self, feedback, condition):
-        rows = DataAnalyser.filter_trials_by_feedback_value(self.trials, feedback)
-        return DataAnalyser.filter_trials_by_condition(rows, self.stimuli, condition)
+    def get_trials_accuracy_by_condition_and_rank(self, condition, rank, feedback):
+        filtered = self.filter_trials_by_condition_and_rank(condition, rank, feedback)
+        blocks = list(set(filtered[constants.BLOCK].values))
+        success_rate = []
+        for block in blocks:
+            s = len(filtered[(filtered[constants.CHOICE] == filtered[constants.OUTCOME]) &
+                             (filtered[constants.BLOCK] == block)])
+            a = len(filtered[filtered[constants.BLOCK] == block])
+            success_rate.append(s / a)
+        d = {"blocks": blocks, "success rate": success_rate}
+        return pd.DataFrame(data=d)
 
-    def get_trials_with_stimuli_filtered_by_condition_and_feedback(self, feedback, condition):
-        filtered_trials = self.get_trials_filtered_by_condition_and_feedback(feedback, condition)
-        for block, trials in filtered_trials.items():
-            filtered_trials[block][STIM1]
+    def get_rt_of_correct_or_incorrect_trials(self, correct, condition=None):
+        if condition:
+            filtered_stimuli = self.stimuli.loc(self.stimuli[constants.CONDITION] == condition)
+            trials_filtered = self.trials.loc(self.trials[constants.STIM1].isin(
+                filtered_stimuli[constants.NUMBER]))
+        else:
+            trials_filtered = self.trials
+        reaction_times, blocks = [], []
+        if correct:
+            trials = trials_filtered.loc[trials_filtered[constants.CHOICE] ==
+                                         trials_filtered[constants.OUTCOME]]
+        else:
+            trials = trials_filtered.loc[trials_filtered[constants.CHOICE] !=
+                                         trials_filtered[constants.OUTCOME]]
+        for i, trial in trials.iterrows():
+            blocks.append(trial[constants.BLOCK])
+            reaction_times.append(trial[constants.CHOICE_TIME] - trial[constants.STIM_TIME])
+        d = {"blocks": blocks, "rt": reaction_times}
+        return pd.DataFrame(data=d)
 
-    #
-    # @staticmethod
-    # def filter_by_success(trials_data):
-    #     filtered = dict()
-    #     for block, trials in trials_data.items():
-    #         filtered[block] = []
-    #         for trial in trials:
-    #             if trial["outcome"] == trial["choice"]:
-    #                 filtered[block].append(trial)
-    #         if not filtered[block]:
-    #             filtered.pop(block)
-    #     return filtered
+    def get_reaction_time_mean_all_experiment(self):
+        correct = self.get_rt_of_correct_or_incorrect_trials(True)
+        incorrect = self.get_rt_of_correct_or_incorrect_trials(False)
+        grouper_correct = correct.groupby("blocks")
+        grouper_incorrect = incorrect.groupby("blocks")
+        df = grouper_correct["rt"].mean().to_frame(name="RT mean").reset_index()
+        df["correct answer"] = True
+        df1 = grouper_incorrect["rt"].mean().to_frame(name="RT mean").reset_index()
+        df1["correct answer"] = False
+        # d = {"correct trials": grouper_correct["rt"].mean().to_frame(name="mean RT").reset_index(),
+        #      "incorrect trials": grouper_incorrect["rt"].mean().to_frame(name="mean "
+        #                                                                       "RT").reset_index()}
+        return pd.concat([df, df1])
