@@ -24,7 +24,10 @@ class DataBaseManager:
             if file_path not in os.listdir(os.getcwd()):
                 print(f"No database file have been found. Please make sure the data base file is "
                       f"named as {file_path} and can be found where the script is.")
-            self.conns.append(sqlite3.connect(file_path))
+            else:
+                self.conns.append(sqlite3.connect(file_path))
+        if not len(self.conns):
+            sys.exit()
 
     def get_all_stimuli(self):
         """
