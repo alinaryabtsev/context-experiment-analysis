@@ -40,4 +40,24 @@ class ShortTermLearningAcrossConditions:
         for condition in constants.CONDITIONS:
             self.accuracy_over_time_condition_per_rank(condition)
 
+    def relative_accuracy_over_each_trial_in_condition_ranks(self):
+        """
+        Generates graphs per each condition, where it takes the average of success rate of a
+        stimuli from the given condition against how many times the stimuli appeared.
 
+        X axis: Number of times stimuli was presented
+        y axis: Relative Accuracy over these 72 trials
+
+        Output: One line for Rank 1 (average all stimuli of rank 1), one line for rank 2 (all
+        stimuli of rank 2), one line for rank 3 (all stimuli)
+        """
+        fig, axs = plt.subplots(nrows=4, figsize=(10, 30))
+        fig.suptitle(f"relative accuracy for possible conditions")
+        for i, condition in enumerate(constants.CONDITIONS):
+            df = self.da.get_relative_accuracy_mean_per_condition(condition)
+            ax = sns.lineplot(data=df, x="appearances", y="relative accuracy",
+                              hue=constants.RANK, ax=axs[i])
+            ax.set_title(f"relative accuracy of condition {condition} over trials")
+            ax.set(ylim=(0, 1))
+            ax.set(xlim=(1, None))
+        plt.savefig(f"relative_accuracy_over_trials.pdf")
