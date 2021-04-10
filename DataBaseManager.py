@@ -17,11 +17,11 @@ class DataBaseManager:
     def __init__(self, *args):
         """
         Initializes databases connections
-        :param args:
+        :param args: databases names to connect with
         """
         self.conns = []
         for file_path in args:
-            if file_path not in os.listdir(os.getcwd()):
+            if not os.path.exists(file_path):
                 print(f"No database file have been found. Please make sure the data base file is "
                       f"named as {file_path} and can be found where the script is.")
             else:

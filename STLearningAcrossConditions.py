@@ -54,8 +54,8 @@ class ShortTermLearningAcrossConditions:
         fig, axs = plt.subplots(nrows=4, figsize=(10, 30))
         fig.suptitle(f"relative accuracy for possible conditions")
         for i, condition in enumerate(constants.CONDITIONS):
-            df = self.da.get_relative_accuracy_mean_per_condition(condition)
-            ax = sns.lineplot(data=df, x="appearances", y="relative accuracy",
+            df = self.da.get_relative_accuracy_mean_per_condition_all_data(condition)
+            ax = sns.lineplot(data=df, x=constants.APPEARANCES, y=constants.RELATIVE_ACCURACY,
                               hue=constants.RANK, ax=axs[i])
             ax.set_title(f"relative accuracy of condition {condition} over trials")
             ax.set(ylim=(0, 1))

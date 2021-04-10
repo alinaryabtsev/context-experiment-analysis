@@ -5,8 +5,11 @@ import pandas as pd
 class DataAnalyser:
     def __init__(self, db):
         self.db = db
-        self.trials = self.db.get_all_trials_with_stimuli()
-        self.stimuli = self.db.get_all_stimuli()
+        self.trials_list = self.db.get_all_trials_with_stimuli()  # list of trials tables from
+        # different DBs
+        self.stimuli_list = self.db.get_all_stimuli()  # list of stimuli tables from different DBs
+        self.trials = self.trials_list[0]
+        self.stimuli = self.stimuli_list[0]
         self.stimuli_by_condition = {cond: self.stimuli.loc[(self.stimuli[constants.CONDITION] ==
                                                              cond)] for cond in range(1, 5)}
 
@@ -96,21 +99,24 @@ class DataAnalyser:
         incorrect = self.get_rt_of_correct_or_incorrect_trials(False, condition)
         return DataAnalyser._get_rt_means_data_frame(correct, incorrect)
 
-    def _get_all_appearances_of_a_stimuli(self, stim, feedback=True):
+    def _get_all_appearances_of_a_stimuli(self, stim, feedback=True, db_num=0):
         """
         Filters trials table according to given stimuli.
         :param stim: stimuli number
         :param feedback: if True than only stimuli with feedback.
+        :param db_num: number of current db to check
         :return: a table where trials are only of given stimuli.
         """
-        return self.trials.loc[(self.trials[constants.FEEDBACK] == feedback) &
-                               ((self.trials[constants.STIM1] == stim) |
-                                (self.trials[constants.STIM2] == stim))]
+        trials = self.trials_list[db_num]
+        return trials.loc[(trials[constants.FEEDBACK] == feedback) &
+                          ((trials[constants.STIM1] == stim) |
+                           (trials[constants.STIM2] == stim))]
 
-    def _get_stimuli_relative_accuracy(self, stim, feedback=True):
+    def _get_stimuli_relative_accuracy(self, stim, feedback=True, db_num=0):
         """
         :param stim: stimuli number
         :param feedback: Stimuli with feedback
+        :param db_num: number of current db to check
         :return: a data frame of relative accuracy of a stimuli
 
         Relative accuracy: for e.g. stim 4- calculate all previous trials with feedback when stim 4
@@ -118,7 +124,7 @@ class DataAnalyser:
         Relative Correct(stim 4)= (times stim 4 was chosen and outcome==1)/(number of times stim 4
         was chosen) (only need trials table)
         """
-        all_stimuli_appearances = self._get_all_appearances_of_a_stimuli(stim, feedback)
+        all_stimuli_appearances = self._get_all_appearances_of_a_stimuli(stim, feedback, db_num)
         relative_accuracy = [0] * len(all_stimuli_appearances.index)
         chosen_right, chosen, index = 0, 0, 0
         for _, stimuli in all_stimuli_appearances.iterrows():
@@ -136,31 +142,36 @@ class DataAnalyser:
         relative_accuracy = relative_accuracy[:constants.STIMULI_APPEARANCES_WITH_FEEDBACK]
         return pd.DataFrame(index=list(range(1, len(relative_accuracy) + 1)),
                             data=relative_accuracy,
-                            columns=["relative accuracy"])
+                            columns=[constants.RELATIVE_ACCURACY])
 
-    def get_relative_accuracy_mean_per_condition(self, condition, feedback=True):
+    def get_relative_accuracy_mean_per_condition_all_data(self, condition, feedback=True):
         """
         :param condition: the condition to get relative accuracy mean of its stimuli as a number
-        :param feedback: True - than only with feedback.
-        :return: a data frame with mean of all stimuli relative accuracy, their ranks according
-        to all presented stimuli.
+        :param feedback: feedback: True - then only with feedback.
+        :return: a data frame with mean of all given databases of all stimuli relative accuracy,
+        their ranks according to all presented stimuli.
         """
         df = pd.DataFrame()
-        all_df = pd.DataFrame()
+        rank_to_add = pd.DataFrame()
+        all_ranks = pd.DataFrame()
         for rank in constants.RANKS:
-            stimuli_by_rank = self.stimuli_by_condition[condition].loc[(
-                self.stimuli_by_condition[condition][constants.RANK] == rank)]
-            for _, stim in stimuli_by_rank.iterrows():
-                if df.empty:
-                    df = self._get_stimuli_relative_accuracy(stim[constants.NUMBER], feedback)
-                else:
-                    df1 = self._get_stimuli_relative_accuracy(stim[constants.NUMBER], feedback)
-                    df = pd.concat([df, df1], axis=1).mean(axis=1)
-            df.name = "relative accuracy"
-            to_add = pd.DataFrame(df)
-            to_add["appearances"] = range(1, len(to_add) + 1)
-            to_add[constants.RANK] = str(rank)
-            all_df = pd.concat([all_df, to_add], axis=0)
-            df = pd.DataFrame()
-        return all_df
-
+            for db_num, stimuli in enumerate(self.stimuli_list):
+                stimuli_by_condition = {cond: stimuli.loc[(stimuli[constants.CONDITION] == cond)]
+                                        for cond in range(1, 5)}
+                stimuli_by_rank = stimuli_by_condition[condition].loc[(
+                        stimuli_by_condition[condition][constants.RANK] == rank)]
+                number_of_stimuli = 0
+                for _, stim in stimuli_by_rank.iterrows():
+                    df1 = self._get_stimuli_relative_accuracy(stim[constants.NUMBER], feedback,db_num)
+                    number_of_stimuli += 1 if not df1.empty else 0
+                    df = df.add(df1, axis=1, fill_value=0)
+                df = df.divide(number_of_stimuli)
+                rank_to_add = rank_to_add.add(df, axis=1, fill_value=0)
+                df = pd.DataFrame()
+            rank_to_add = rank_to_add.divide(len(self.stimuli_list))
+            rank_to_add[constants.APPEARANCES] = range(1, len(rank_to_add) + 1)
+            rank_to_add[constants.RANK] = str(rank)
+            all_ranks = pd.concat([all_ranks, rank_to_add], axis=0)
+            rank_to_add = pd.DataFrame()
+        all_ranks[constants.RELATIVE_ACCURACY] = all_ranks[constants.RELATIVE_ACCURACY].astype(float)
+        return all_ranks

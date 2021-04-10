@@ -1,7 +1,10 @@
 # databases file names
-DATABASES = ["2_schedule.db", "1003_schedule.db", "1006_schedule.db", "1008_schedule.db",
+DATABASE_FILE_NAME = "001_schedule.db"
+PATH_TO_FILES = './/schedules//'
+DATABASES = ["2_schedule.db", "1003_schedule.db", "1006_schedule.db",
              "1010_schedule.db", "1018_schedule.db", "1019_schedule.db", "1021_schedule.db",
              "1022_schedule.db"]
+
 
 # trials table parameters names:
 BLOCK = "block"
@@ -37,5 +40,8 @@ PROBABILITIES = {1: "1", 2/3: "2/3", 1/3: "1/3", 0: "0"}
 PROBABILITIES_MATTER = {1: "1", 2/3: "2/3", 1/3: "1/3"}
 RANKS = [2, 1, 0]
 RANKS_MATTER = [2, 1]
-STIMULI_APPEARANCES_WITH_FEEDBACK = 62
 
+# Short term learning across conditions
+STIMULI_APPEARANCES_WITH_FEEDBACK = 62
+APPEARANCES = "appearances"
+RELATIVE_ACCURACY = "relative accuracy"

@@ -1,12 +1,12 @@
 import DataBaseManager
 from STLearningAcrossConditions import ShortTermLearningAcrossConditions
 from ReactionTime import ReactionTime
-
-DATABASE_FILE_NAME = "001_schedule.db"
+import constants
 
 
 def main():
-    db = DataBaseManager.DataBaseManager(DATABASE_FILE_NAME)
+    databases = [constants.PATH_TO_FILES + filename for filename in constants.DATABASES]
+    db = DataBaseManager.DataBaseManager(*databases)
     stl_analyser = ShortTermLearningAcrossConditions(db)
     # stl_analyser.accuracy_over_time_by_probabilities()
     # stl_analyser.accuracy_over_time_by_ranks()
@@ -14,6 +14,7 @@ def main():
     # rt_analyser.mean_reaction_time_correct_vs_incorrect_all_blocks()
     # rt_analyser.mean_reaction_time_correct_vs_incorrect_per_condition()
     stl_analyser.relative_accuracy_over_each_trial_in_condition_ranks()
+
 
 if __name__ == '__main__':
     main()
