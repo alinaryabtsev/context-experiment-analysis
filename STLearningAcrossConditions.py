@@ -40,7 +40,7 @@ class ShortTermLearningAcrossConditions:
         for condition in constants.CONDITIONS:
             self.accuracy_over_time_condition_per_rank(condition)
 
-    def relative_accuracy_over_each_trial_in_condition_ranks(self):
+    def relative_accuracy_over_each_trial_in_condition_ranks(self, feedback=True):
         """
         Generates graphs per each condition, where it takes the average of success rate of a
         stimuli from the given condition against how many times the stimuli appeared.
@@ -50,14 +50,17 @@ class ShortTermLearningAcrossConditions:
 
         Output: One line for Rank 1 (average all stimuli of rank 1), one line for rank 2 (all
         stimuli of rank 2), one line for rank 3 (all stimuli)
+        :param feedback: plot the stimuli with feedback or those without
         """
         fig, axs = plt.subplots(nrows=4, figsize=(10, 30))
-        fig.suptitle(f"relative accuracy for possible conditions")
+        fig.suptitle(f"relative accuracy for possible conditions with"
+                     f"{'' if feedback else ' no'} feedback")
         for i, condition in enumerate(constants.CONDITIONS):
-            df = self.da.get_relative_accuracy_mean_per_condition_all_data(condition)
+            df = self.da.get_relative_accuracy_mean_per_condition_all_data(condition, feedback)
             ax = sns.lineplot(data=df, x=constants.APPEARANCES, y=constants.RELATIVE_ACCURACY,
                               hue=constants.RANK, ax=axs[i])
             ax.set_title(f"relative accuracy of condition {condition} over trials")
             ax.set(ylim=(0, 1))
             ax.set(xlim=(1, None))
-        plt.savefig(f"relative_accuracy_over_trials.pdf")
+        plt.savefig(f"relative_accuracy_over_trials{'' if feedback else '_no_feedback'}.pdf")
+
