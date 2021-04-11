@@ -156,13 +156,13 @@ class DataAnalyser:
         all_ranks = pd.DataFrame()
         for rank in constants.RANKS:
             for db_num, stimuli in enumerate(self.stimuli_list):
-                stimuli_by_condition = {cond: stimuli.loc[(stimuli[constants.CONDITION] == cond)]
-                                        for cond in range(1, 5)}
-                stimuli_by_rank = stimuli_by_condition[condition].loc[(
-                        stimuli_by_condition[condition][constants.RANK] == rank)]
+                stimuli_by_condition = stimuli.loc[(stimuli[constants.CONDITION] == condition)]
+                stimuli_by_rank = stimuli_by_condition.loc[(stimuli_by_condition[constants.RANK]
+                                                            == rank)]
                 number_of_stimuli = 0
                 for _, stim in stimuli_by_rank.iterrows():
-                    df1 = self._get_stimuli_relative_accuracy(stim[constants.NUMBER], feedback,db_num)
+                    df1 = self._get_stimuli_relative_accuracy(stim[constants.NUMBER],
+                                                              feedback, db_num)
                     number_of_stimuli += 1 if not df1.empty else 0
                     df = df.add(df1, axis=1, fill_value=0)
                 df = df.divide(number_of_stimuli)
