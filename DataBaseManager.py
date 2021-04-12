@@ -7,7 +7,7 @@ import constants
 SQL_QUERY_GET_ALL_STIMULI = "SELECT number, reward, rank, condition FROM stimuli " \
                             "WHERE condition >= 1 AND condition <= 4"
 SQL_QUERY_GET_TRIALS = "SELECT block, stim1, stim2, feedback, choice, outcome, choice_time, " \
-                       "stim_time FROM trials WHERE block > 12 AND block < 1000"
+                       "stim_time FROM trials WHERE block > 12 AND block < 99"
 
 
 class DataBaseManager:
