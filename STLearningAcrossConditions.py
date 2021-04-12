@@ -64,3 +64,14 @@ class ShortTermLearningAcrossConditions:
             ax.set(xlim=(1, None))
         plt.savefig(f"relative_accuracy_over_trials{'' if feedback else '_no_feedback'}.pdf")
 
+    def relative_accuracy_within_time_differences(self, feedback=True):
+        fig, axs = plt.subplots(nrows=4, figsize=(10, 30))
+        fig.suptitle(f"relative accuracy within time differences for possible conditions with"
+                     f"{'' if feedback else ' no'} feedback")
+        for i, condition in enumerate(constants.CONDITIONS):
+            df = self.da.get_within_condition_accuracy_over_time_difference(condition, feedback)
+            ax = sns.scatterplot(data=df, x=constants.TIME_DIFF, y=constants.RELATIVE_ACCURACY,
+                                 ax=axs[i])
+            ax.set_title(f"relative accuracy within time difference of condition {condition}")
+            ax.set(ylim=(0, 1))
+        plt.savefig(f"relative_accuracy_within_time_difference{'' if feedback else '_no_feedback'}.pdf")

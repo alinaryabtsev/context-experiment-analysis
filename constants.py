@@ -1,7 +1,7 @@
 # databases file names
 DATABASE_FILE_NAME = "001_schedule.db"
 PATH_TO_FILES = './/schedules//'
-SUBJECTS = ["001", 2, 1003, 1006, 1010, 1018, 1019, 1021, 1022]
+SUBJECTS = ["001", 1003, 1006, 1010, 1018, 1019, 1021, 1022]
 DATABASES = [str(num) + "_schedule.db" for num in SUBJECTS]
 
 # trials table parameters names:
@@ -43,3 +43,4 @@ RANKS_MATTER = [2, 1]
 STIMULI_APPEARANCES_WITH_FEEDBACK = 62
 APPEARANCES = "appearances"
 RELATIVE_ACCURACY = "relative accuracy"
+TIME_DIFF = "time difference"

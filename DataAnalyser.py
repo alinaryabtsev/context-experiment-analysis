@@ -1,5 +1,6 @@
 import constants
 import pandas as pd
+from datetime import datetime
 
 
 class DataAnalyser:
@@ -175,3 +176,71 @@ class DataAnalyser:
             rank_to_add = pd.DataFrame()
         all_ranks[constants.RELATIVE_ACCURACY] = all_ranks[constants.RELATIVE_ACCURACY].astype(float)
         return all_ranks
+
+    @staticmethod
+    def _calculate_time_differences_between_blocks(stimuli, start_block, end_block):
+        """
+        Gets two blocks' numbers of some stimuli and calculates time difference between last
+        appearance of the first block and time difference of the first appearance of the second
+        block.
+        :param stimuli: stimuli number
+        :param start_block: block number of the first block to calculate time difference
+        :param end_block: block number of the seconds block to calculate time difference
+        :return: time difference in hours between two appearances of the blocks
+        """
+        t1 = datetime.fromtimestamp(stimuli.loc[stimuli[constants.BLOCK] == start_block].tail(
+                1).iloc[0][constants.CHOICE_TIME] / 1000)
+        t2 = datetime.fromtimestamp(stimuli.loc[stimuli[constants.BLOCK] == end_block].head(
+            1).iloc[0][constants.CHOICE_TIME] / 1000)
+        return abs(t1-t2).seconds / 3600
+
+    def get_within_condition_accuracy_over_time_difference(self, condition, feedback=True):
+        """
+        Model within condition- accuracy (within feedback trials) but as a function of how many
+        blocks they were learned apart.
+        X axis: Time Difference
+        Y Axis (Separately):   1) Feedback accuracy of second session
+                               2) No Feedback Accuracy (separate for each condition)
+
+        E.g. in a 3-2 condition stimulus 3
+            1. Calculate the end time of the first block with stimulus 3
+            2. Calculate the start time of the 2nd block with stimulus 3
+            __________________________________
+            Time difference
+
+            1. Take all no feedback trials where stimulus 3 was presented
+            2, Take their mean relative accuracy
+
+        _____________________________
+        This produces a single point for the y axis
+
+        Iterate over all stimuli (63 points)
+
+        :param feedback: with or without feedback
+        :return: data frame for
+        """
+        df = pd.DataFrame()
+        all_data = pd.DataFrame()
+        for db_num, stimuli in enumerate(self.stimuli_list):
+            stimuli_by_condition = stimuli.loc[(stimuli[constants.CONDITION] == condition)]
+            for _, stim in stimuli_by_condition.iterrows():
+                relative_accuracy = \
+                    self._get_stimuli_relative_accuracy(stim[constants.NUMBER], feedback, db_num)[
+                        constants.RELATIVE_ACCURACY].mean()
+                stimuli_trials = self._get_all_appearances_of_a_stimuli(stim[constants.NUMBER],
+                                                                        feedback, db_num)
+                if stimuli_trials.empty:
+                    continue
+                stimuli_blocks = stimuli_trials[constants.BLOCK].unique()
+                if condition in constants.CONDITIONS[:2]:
+                    time_diff = DataAnalyser._calculate_time_differences_between_blocks(
+                        stimuli_trials, *stimuli_blocks)
+                else:
+                    time_diff = DataAnalyser._calculate_time_differences_between_blocks(
+                        stimuli_trials, *stimuli_blocks[1:3])
+                df = df.append(pd.DataFrame({constants.RELATIVE_ACCURACY: [relative_accuracy],
+                                             constants.TIME_DIFF: [time_diff]}), ignore_index=True)
+            all_data = all_data.add(df, axis=1, fill_value=0)
+            df = pd.DataFrame()
+        all_data[constants.CONDITION] = condition
+        return all_data.divide(len(self.stimuli_list))
