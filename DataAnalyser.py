@@ -129,9 +129,8 @@ class DataAnalyser:
         relative_accuracy = [0] * len(all_stimuli_appearances.index)
         chosen_right, chosen, index = 0, 0, 0
         for _, stimuli in all_stimuli_appearances.iterrows():
-            if (stimuli[constants.STIM1] == stim and stimuli[constants.CHOICE] ==
-                constants.FIRST) or (stimuli[constants.STIM2] and stimuli[constants.CHOICE] ==
-                                     constants.FIRST):
+            if (stimuli[constants.STIM1] == stim and stimuli[constants.CHOICE] == constants.FIRST) \
+                    or (stimuli[constants.STIM2] == stim and stimuli[constants.CHOICE] == constants.FIRST):
                 chosen += 1
                 if stimuli[constants.OUTCOME] == constants.SUCCESS:
                     chosen_right += 1
@@ -174,7 +173,8 @@ class DataAnalyser:
             rank_to_add[constants.RANK] = str(rank)
             all_ranks = pd.concat([all_ranks, rank_to_add], axis=0)
             rank_to_add = pd.DataFrame()
-        all_ranks[constants.RELATIVE_ACCURACY] = all_ranks[constants.RELATIVE_ACCURACY].astype(float)
+        all_ranks[constants.RELATIVE_ACCURACY] = all_ranks[constants.RELATIVE_ACCURACY].astype(
+            float)
         return all_ranks
 
     @staticmethod
@@ -189,10 +189,10 @@ class DataAnalyser:
         :return: time difference in hours between two appearances of the blocks
         """
         t1 = datetime.fromtimestamp(stimuli.loc[stimuli[constants.BLOCK] == start_block].tail(
-                1).iloc[0][constants.CHOICE_TIME] / 1000)
+            1).iloc[0][constants.CHOICE_TIME] / 1000)
         t2 = datetime.fromtimestamp(stimuli.loc[stimuli[constants.BLOCK] == end_block].head(
             1).iloc[0][constants.CHOICE_TIME] / 1000)
-        return abs(t1-t2).seconds / 3600
+        return abs(t1 - t2).seconds / 3600
 
     def get_within_condition_accuracy_over_time_difference(self, condition, feedback=True):
         """
@@ -217,6 +217,7 @@ class DataAnalyser:
         Iterate over all stimuli (63 points)
 
         :param feedback: with or without feedback
+        :param condition: condition of the data
         :return: data frame for
         """
         df = pd.DataFrame()
@@ -239,8 +240,25 @@ class DataAnalyser:
                     time_diff = DataAnalyser._calculate_time_differences_between_blocks(
                         stimuli_trials, *stimuli_blocks[1:3])
                 df = df.append(pd.DataFrame({constants.RELATIVE_ACCURACY: [relative_accuracy],
-                                             constants.TIME_DIFF: [time_diff]}), ignore_index=True)
+                                             constants.TIME_DIFF: [time_diff],
+                                             constants.NUMBER: [stim[constants.NUMBER]]}),
+                               ignore_index=True)
             all_data = all_data.add(df, axis=1, fill_value=0)
             df = pd.DataFrame()
+        all_data = all_data.divide(len(self.stimuli_list))
         all_data[constants.CONDITION] = condition
-        return all_data.divide(len(self.stimuli_list))
+        return all_data
+
+    def get_within_condition_accuracy_over_time_difference_all_conditions(self, feedback=True):
+        """
+        gets data over all conditions of Model within condition- accuracy (within feedback trials)
+        but as a function of how many blocks they were learned apart
+
+        :param feedback: data with feedback or without
+        :return: data frame with all the of the
+        """
+        df = pd.DataFrame()
+        for condition in constants.CONDITIONS:
+            df = df.append(self.get_within_condition_accuracy_over_time_difference(condition,
+                                                                                   feedback))
+        return df
