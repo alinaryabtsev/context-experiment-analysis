@@ -1,3 +1,9 @@
+# databases file names
+DATABASE_FILE_NAME = "001_schedule.db"
+PATH_TO_FILES = './/schedules//'
+SUBJECTS = ["001", 1003, 1006, 1010, 1018, 1019, 1021, 1022]
+DATABASES = [str(num) + "_schedule.db" for num in SUBJECTS]
+
 # trials table parameters names:
 BLOCK = "block"
 STIM1 ="stim1"
@@ -32,5 +38,9 @@ PROBABILITIES = {1: "1", 2/3: "2/3", 1/3: "1/3", 0: "0"}
 PROBABILITIES_MATTER = {1: "1", 2/3: "2/3", 1/3: "1/3"}
 RANKS = [2, 1, 0]
 RANKS_MATTER = [2, 1]
-STIMULI_APPEARANCES_WITH_FEEDBACK = 62
 
+# Short term learning across conditions
+STIMULI_APPEARANCES_WITH_FEEDBACK = 62
+APPEARANCES = "appearances"
+RELATIVE_ACCURACY = "relative accuracy"
+TIME_DIFF = "time difference"

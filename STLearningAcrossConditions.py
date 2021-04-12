@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from DataAnalyser import DataAnalyser
 import constants
+
 sns.set_style("darkgrid", {"axes.facecolor": ".9"})
 sns.set_context("paper")
 
@@ -40,7 +41,7 @@ class ShortTermLearningAcrossConditions:
         for condition in constants.CONDITIONS:
             self.accuracy_over_time_condition_per_rank(condition)
 
-    def relative_accuracy_over_each_trial_in_condition_ranks(self):
+    def relative_accuracy_over_each_trial_in_condition_ranks(self, feedback=True):
         """
         Generates graphs per each condition, where it takes the average of success rate of a
         stimuli from the given condition against how many times the stimuli appeared.
@@ -50,14 +51,54 @@ class ShortTermLearningAcrossConditions:
 
         Output: One line for Rank 1 (average all stimuli of rank 1), one line for rank 2 (all
         stimuli of rank 2), one line for rank 3 (all stimuli)
+        :param feedback: plot the stimuli with feedback or those without
         """
         fig, axs = plt.subplots(nrows=4, figsize=(10, 30))
-        fig.suptitle(f"relative accuracy for possible conditions")
+        fig.suptitle(f"relative accuracy for possible conditions with"
+                     f"{'' if feedback else ' no'} feedback")
         for i, condition in enumerate(constants.CONDITIONS):
-            df = self.da.get_relative_accuracy_mean_per_condition(condition)
-            ax = sns.lineplot(data=df, x="appearances", y="relative accuracy",
+            df = self.da.get_relative_accuracy_mean_per_condition_all_data(condition, feedback)
+            ax = sns.lineplot(data=df, x=constants.APPEARANCES, y=constants.RELATIVE_ACCURACY,
                               hue=constants.RANK, ax=axs[i])
             ax.set_title(f"relative accuracy of condition {condition} over trials")
             ax.set(ylim=(0, 1))
             ax.set(xlim=(1, None))
-        plt.savefig(f"relative_accuracy_over_trials.pdf")
+        plt.savefig(f"relative_accuracy_over_trials{'' if feedback else '_no_feedback'}.pdf")
+
+    def relative_accuracy_within_time_differences(self, feedback=True):
+        """
+        Model within condition- accuracy (within feedback trials) but as a function of how many
+        blocks they were learned apart
+
+        X axis: Time Difference
+        Y Axis:   1) Feedback accuracy of second session
+                  2) No Feedback Accuracy (separate for each condition)
+
+        :param feedback: with or without feedback
+        """
+        plt.title(f"relative accuracy within time differences across all conditions with"
+                  f"{'' if feedback else ' no'} feedback")
+        df = self.da.get_within_condition_accuracy_over_time_difference_all_conditions(feedback)
+        sns.scatterplot(data=df, x=constants.TIME_DIFF, y=constants.RELATIVE_ACCURACY,
+                        hue=constants.CONDITION,
+                        palette=['green', 'orange', 'dodgerblue', 'red'], legend='full')
+        plt.savefig(
+            f"relative_accuracy_within_time_difference{'' if feedback else '_no_feedback'}.pdf")
+
+    def relative_accuracy_within_time_differences_distinct_plots(self, feedback=True):
+        """
+        plotting to distinct graphs relative accuracy (within feedback trials) but as a function of
+        how many blocks they were learned apart.
+        :param feedback: plot the data with feedback or without
+        """
+        fig, axs = plt.subplots(nrows=4, figsize=(10, 30))
+        fig.suptitle(f"relative accuracy within time differences for possible conditions with"
+                     f"{'' if feedback else ' no'} feedback")
+        for i, condition in enumerate(constants.CONDITIONS):
+            df = self.da.get_within_condition_accuracy_over_time_difference(condition, feedback)
+            ax = sns.scatterplot(data=df, x=constants.TIME_DIFF, y=constants.RELATIVE_ACCURACY,
+                                 ax=axs[i])
+            ax.set_title(f"relative accuracy within time difference of condition {condition}")
+            ax.set(ylim=(0, 1))
+        plt.savefig( f"relative_accuracy_within_time_difference"
+                     f"_per_condition{'' if feedback else '_no_feedback'}.pdf")
