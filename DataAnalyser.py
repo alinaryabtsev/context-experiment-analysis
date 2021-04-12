@@ -130,7 +130,8 @@ class DataAnalyser:
         chosen_right, chosen, index = 0, 0, 0
         for _, stimuli in all_stimuli_appearances.iterrows():
             if (stimuli[constants.STIM1] == stim and stimuli[constants.CHOICE] == constants.FIRST) \
-                    or (stimuli[constants.STIM2] == stim and stimuli[constants.CHOICE] == constants.FIRST):
+                    or (stimuli[constants.STIM2] == stim and stimuli[constants.CHOICE] ==
+                        constants.SECOND):
                 chosen += 1
                 if stimuli[constants.OUTCOME] == constants.SUCCESS:
                     chosen_right += 1
