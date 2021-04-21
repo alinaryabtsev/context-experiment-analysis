@@ -129,21 +129,58 @@ class DataAnalyser:
         relative_accuracy = [0] * len(all_stimuli_appearances.index)
         chosen_right, chosen, index = 0, 0, 0
         for _, stimuli in all_stimuli_appearances.iterrows():
-            if (stimuli[constants.STIM1] == stim and stimuli[constants.CHOICE] == constants.FIRST) \
-                    or (stimuli[constants.STIM2] == stim and stimuli[constants.CHOICE] ==
-                        constants.SECOND):
-                chosen += 1
-                if stimuli[constants.OUTCOME] == constants.SUCCESS:
-                    chosen_right += 1
-
-            if chosen:
-                relative_accuracy[index] = chosen_right / chosen
+            chosen += 1
+            if stimuli[constants.OUTCOME] == constants.SUCCESS:
+                chosen_right += 1
+            relative_accuracy[index] = chosen_right / chosen
             index += 1
-
         relative_accuracy = relative_accuracy[:constants.STIMULI_APPEARANCES_WITH_FEEDBACK]
         return pd.DataFrame(index=list(range(1, len(relative_accuracy) + 1)),
                             data=relative_accuracy,
                             columns=[constants.RELATIVE_ACCURACY])
+
+    def _get_stimuli_observed_accuracy(self, stim, feedback=True, db_num=0):
+        """
+            :param stim: stimuli number
+            :param feedback: Stimuli with feedback
+            :param db_num: number of current db to check
+            :return: a data frame of relative accuracy of a stimuli
+
+            Observed accuracy: unlike relative accuracy, it's also considered when the stimuli is
+            not chosen and it shouldn't has been (meaning if outcome = 0 and other stim fixed
+            probability is higher)
+        """
+        all_stimuli_appearances = self._get_all_appearances_of_a_stimuli(stim, feedback, db_num)
+        relative_accuracy = [0] * len(all_stimuli_appearances.index)
+        chosen_right, chosen, index = 0, 0, 0
+        for _, stimuli in all_stimuli_appearances.iterrows():
+            chosen += 1
+            first, second, outcome = stimuli[constants.FIRST], stimuli[constants.SECOND], \
+                                     stimuli[constants.OUTCOME]
+            first_better = self.has_stimuli_higher_probability(first, second, db_num)
+            if outcome == constants.SUCCESS or (outcome == constants.FAILURE and
+                                                (stim == first and first_better) or (
+                                                        stim == second and not first_better)):
+                chosen_right += 1
+            relative_accuracy[index] = chosen_right / chosen
+            index += 1
+        relative_accuracy = relative_accuracy[:constants.STIMULI_APPEARANCES_WITH_FEEDBACK]
+        return pd.DataFrame(index=list(range(1, len(relative_accuracy) + 1)),
+                            data=relative_accuracy,
+                            columns=[constants.RELATIVE_ACCURACY])
+
+    def has_stimuli_higher_probability(self, stim1, stim2, db_num):
+        """
+        Gets two stimuli numbers and than compares which one has a higher probability
+        :param stim1: stimulus 1 number
+        :param stim2: stimulus 2 number
+        :param db_num: the number of the DB
+        :return: True if stimulus 1 has higher probability else false
+        """
+        stimuli = self.stimuli_list[db_num]
+        reward1 = stimuli.loc[stimuli[constants.NUMBER] == stim1][constants.REWARD].values[0]
+        reward2 = stimuli.loc[stimuli[constants.NUMBER] == stim2][constants.REWARD].values[0]
+        return reward1 > reward2
 
     def get_relative_accuracy_mean_per_condition_all_data(self, condition, feedback=True):
         """
