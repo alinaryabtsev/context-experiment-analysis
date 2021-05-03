@@ -1,6 +1,7 @@
 import constants
 import pandas as pd
 from datetime import datetime
+import numpy as np
 
 
 class DataAnalyser:
@@ -151,23 +152,23 @@ class DataAnalyser:
             probability is higher)
         """
         all_stimuli_appearances = self._get_all_appearances_of_a_stimuli(stim, feedback, db_num)
-        relative_accuracy = [0] * len(all_stimuli_appearances.index)
+        observed_accuracy = [0] * len(all_stimuli_appearances.index)
         chosen_right, chosen, index = 0, 0, 0
         for _, stimuli in all_stimuli_appearances.iterrows():
             chosen += 1
-            first, second, outcome = stimuli[constants.FIRST], stimuli[constants.SECOND], \
-                                     stimuli[constants.OUTCOME]
+            first, second, outcome, choice = stimuli[constants.FIRST], stimuli[constants.SECOND], \
+                                             stimuli[constants.OUTCOME], stimuli[constants.CHOICE]
             first_better = self.has_stimuli_higher_probability(first, second, db_num)
             if outcome == constants.SUCCESS or (outcome == constants.FAILURE and
-                                                (stim == first and first_better) or (
-                                                        stim == second and not first_better)):
+                                                (choice == constants.FIRST and not first_better)
+                                                or (choice == constants.SECOND and first_better)):
                 chosen_right += 1
-            relative_accuracy[index] = chosen_right / chosen
+            observed_accuracy[index] = chosen_right / chosen
             index += 1
-        relative_accuracy = relative_accuracy[:constants.STIMULI_APPEARANCES_WITH_FEEDBACK]
-        return pd.DataFrame(index=list(range(1, len(relative_accuracy) + 1)),
-                            data=relative_accuracy,
-                            columns=[constants.RELATIVE_ACCURACY])
+        observed_accuracy = observed_accuracy[:constants.STIMULI_APPEARANCES_WITH_FEEDBACK]
+        return pd.DataFrame(index=list(range(1, len(observed_accuracy) + 1)),
+                            data=observed_accuracy,
+                            columns=[constants.OBSERVED_ACCURACY])
 
     def has_stimuli_higher_probability(self, stim1, stim2, db_num):
         """
