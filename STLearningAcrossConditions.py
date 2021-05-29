@@ -101,13 +101,12 @@ class ShortTermLearningAcrossConditions:
                 ax = sns.lineplot(data=df, x=constants.APPEARANCES, y=constants.LOW_REWARD,
                                   dashes=[(5, 10), (5, 10)], hue=constants.RANK, ax=axs[i],
                                   sizes=(constants.LOW_REWARD, constants.HIGH_REWARD))
-                # ax.lines[0].set_linestyle("--")
-                # ax.lines[1].set_linestyle("--")
-                # ax.lines[2].set_linestyle("--")
                 ax = sns.lineplot(data=df, x=constants.APPEARANCES, y=constants.HIGH_REWARD,
                               hue=constants.RANK, ax=axs[i], sizes=(constants.LOW_REWARD,
                                                                     constants.HIGH_REWARD))
-                ax.lines[2].set_linestyle("-")
+                ax.lines[0].set_linestyle("--")
+                ax.lines[1].set_linestyle("--")
+                ax.lines[2].set_linestyle("--")
             for r in constants.RANKS:
                 a = df.loc[df[constants.RANK] == str(r), constants.HIGH_REWARD].tolist()
                 b = df.loc[df[constants.RANK] == str(r), constants.LOW_REWARD].tolist()
