@@ -37,14 +37,15 @@ CONDITIONS = [1, 2, 3, 4]
 PROBABILITIES = {1: "1", 2/3: "2/3", 1/3: "1/3", 0: "0"}
 PROBABILITIES_MATTER = {1: "1", 2/3: "2/3", 1/3: "1/3"}
 RANKS = [2, 1, 0]
+RANKS_COLORS = {"2": "#b5edef", "1": "#befe61", "0": "#feab98"}
 RANKS_MATTER = [2, 1]
 HIGH_REWARD = "high reward"
 LOW_REWARD = "low reward"
-REWARDS_BY_RANK = {2: {HIGH_REWARD: 1, LOW_REWARD: 0.66},
-                   1: {HIGH_REWARD: 0.66, LOW_REWARD: 0.33},
+REWARDS_BY_RANK = {2: {HIGH_REWARD: 1, LOW_REWARD: 0.67},
+                   1: {HIGH_REWARD: 0.67, LOW_REWARD: 0.33},
                    0: {HIGH_REWARD: 0.33, LOW_REWARD: 0}}
-REWARDS_BY_RANK_ = {2: {1: HIGH_REWARD, 0.66: HIGH_REWARD},
-                    1: {0.66: HIGH_REWARD, 0.33: LOW_REWARD},
+REWARDS_BY_RANK_ = {2: {1: HIGH_REWARD, 0.67: LOW_REWARD},
+                    1: {0.67: HIGH_REWARD, 0.33: LOW_REWARD},
                     0: {0.33: HIGH_REWARD, 0: LOW_REWARD}}
 
 # Short term learning across conditions
