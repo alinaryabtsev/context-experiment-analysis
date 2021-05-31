@@ -321,7 +321,7 @@ class DataAnalyser:
             1).iloc[0][constants.CHOICE_TIME] / 1000)
         t2 = datetime.fromtimestamp(stimuli.loc[stimuli[constants.BLOCK] == end_block].head(
             1).iloc[0][constants.CHOICE_TIME] / 1000)
-        return abs(t1 - t2).seconds / 3600
+        return abs(t1 - t2).total_seconds() / 3600
 
     def get_within_condition_accuracy_over_time_difference(self, condition, feedback=True):
         """

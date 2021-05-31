@@ -2,8 +2,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from DataAnalyser import DataAnalyser
 import constants
-import pandas as pd
-import numpy as np
+
 
 sns.set_style("darkgrid", {"axes.facecolor": ".9"})
 sns.set_context("paper")
