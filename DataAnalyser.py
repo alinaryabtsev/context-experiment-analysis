@@ -198,11 +198,10 @@ class DataAnalyser:
         for rank in constants.RANKS:
             for db_num, stimuli in enumerate(self.stimuli_list):
                 stimuli_by_condition = stimuli.loc[(stimuli[constants.CONDITION] == condition)]
-                stimuli_by_rank = stimuli_by_condition.loc[(stimuli_by_condition[constants.RANK]
-                                                            == rank)]
+                stimuli_by_rank = stimuli_by_condition.loc[(stimuli_by_condition[constants.RANK] == rank)]
                 stim_amount, high_reward_amount = 0, 0
                 for _, stim in stimuli_by_rank.iterrows():
-                    df1 = self._get_stimuli_relative_accuracy(stim[constants.NUMBER], feedback,db_num)
+                    df1 = self._get_stimuli_relative_accuracy(stim[constants.NUMBER], feedback, db_num)
                     if df1.empty:
                         continue
                     stim_amount += 1
@@ -243,12 +242,10 @@ class DataAnalyser:
         for rank in constants.RANKS:
             for db_num, stimuli in enumerate(self.stimuli_list):
                 stimuli_by_condition = stimuli.loc[(stimuli[constants.CONDITION] == condition)]
-                stimuli_by_rank = stimuli_by_condition.loc[(stimuli_by_condition[constants.RANK]
-                                                            == rank)]
+                stimuli_by_rank = stimuli_by_condition.loc[(stimuli_by_condition[constants.RANK] == rank)]
                 stim_amount, high_reward_amount = 0, 0
                 for _, stim in stimuli_by_rank.iterrows():
-                    df1 = self._get_stimuli_observed_accuracy(stim[constants.NUMBER], feedback,
-                                                              db_num)
+                    df1 = self._get_stimuli_observed_accuracy(stim[constants.NUMBER], feedback, db_num)
                     if df1.empty:
                         continue
                     stim_amount += 1
@@ -288,8 +285,7 @@ class DataAnalyser:
         for rank in constants.RANKS:
             for db_num, stimuli in enumerate(self.stimuli_list):
                 stimuli_by_condition = stimuli.loc[(stimuli[constants.CONDITION] == condition)]
-                stimuli_by_rank = stimuli_by_condition.loc[(stimuli_by_condition[constants.RANK]
-                                                            == rank)]
+                stimuli_by_rank = stimuli_by_condition.loc[(stimuli_by_condition[constants.RANK] == rank)]
                 number_of_stimuli = 0
                 for _, stim in stimuli_by_rank.iterrows():
                     df1 = self._get_stimuli_observed_accuracy(stim[constants.NUMBER], feedback, db_num)
@@ -412,8 +408,7 @@ class DataAnalyser:
                 observed_accuracy = \
                     self._get_stimuli_observed_accuracy(stim[constants.NUMBER], feedback, db_num)[
                         constants.OBSERVED_ACCURACY].mean()
-                stimuli_trials = self._get_all_appearances_of_a_stimuli(stim[constants.NUMBER],
-                                                                        feedback, db_num)
+                stimuli_trials = self._get_all_appearances_of_a_stimuli(stim[constants.NUMBER], db_num=db_num)
                 if stimuli_trials.empty:
                     continue
                 stimuli_blocks = stimuli_trials[constants.BLOCK].unique()
@@ -443,12 +438,10 @@ class DataAnalyser:
         """
         df = pd.DataFrame()
         for condition in constants.CONDITIONS:
-            df = df.append(self.get_within_condition_accuracy_over_time_difference(condition,
-                                                                                   feedback))
+            df = df.append(self.get_within_condition_accuracy_over_time_difference(condition, feedback))
         return df
 
-    def get_within_condition_observed_accuracy_over_time_difference_all_conditions(self,
-                                                                                feedback=True):
+    def get_within_condition_observed_accuracy_over_time_difference_all_conditions(self, feedback=True):
         """
         gets data over all conditions of Model within condition- accuracy (within feedback trials)
         but as a function of how many blocks they were learned apart

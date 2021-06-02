@@ -3,7 +3,6 @@ import seaborn as sns
 from DataAnalyser import DataAnalyser
 import constants
 
-
 sns.set_style("darkgrid", {"axes.facecolor": ".9"})
 sns.set_context("paper")
 
@@ -85,42 +84,30 @@ class ShortTermLearningAcrossConditions:
         :param feedback: plot the stimuli with feedback or those without
         """
         fig, axs = plt.subplots(nrows=4, figsize=(10, 30))
-        fig.suptitle(f"Observed accuracy for possible conditions with"
-                     f"{'' if feedback else ' no'} feedback")
+        fig.suptitle(f"Observed accuracy for possible conditions with{'' if feedback else ' no'} feedback")
         for i, condition in enumerate(constants.CONDITIONS):
             df = self.da.get_observed_accuracy_mean_per_condition_all_data_ranges(condition, feedback)
+            appearances = constants.APPEARANCES
+            low_rewards = constants.LOW_REWARD
+            high_rewards = constants.HIGH_REWARD
             if not feedback:
-                ax = sns.lineplot(data=df, x=constants.APPEARANCES[:25],
-                                  y=constants.OBSERVED_ACCURACY[:25],
-                                  hue=constants.RANK, ax=axs[i], sizes=(constants.LOW_REWARD,
-                                                                    constants.HIGH_REWARD))
-            else:
-                ax = sns.lineplot(data=df, x=constants.APPEARANCES, y=constants.OBSERVED_ACCURACY,
-                                  hue=constants.RANK, ax=axs[i], ci="sd")
-                ax = sns.lineplot(data=df, x=constants.APPEARANCES, y=constants.LOW_REWARD,
-                                  dashes=[(5, 10), (5, 10)], hue=constants.RANK, ax=axs[i],
-                                  sizes=(constants.LOW_REWARD, constants.HIGH_REWARD))
-                ax = sns.lineplot(data=df, x=constants.APPEARANCES, y=constants.HIGH_REWARD,
-                              hue=constants.RANK, ax=axs[i], sizes=(constants.LOW_REWARD,
-                                                                    constants.HIGH_REWARD))
-                ax.lines[0].set_linestyle("--")
-                ax.lines[1].set_linestyle("--")
-                ax.lines[2].set_linestyle("--")
-            for r in constants.RANKS:
-                a = df.loc[df[constants.RANK] == str(r), constants.HIGH_REWARD].tolist()
-                b = df.loc[df[constants.RANK] == str(r), constants.LOW_REWARD].tolist()
-                appearances = df[constants.APPEARANCES].unique()
-                if not feedback:
-                    a = a[:25]
-                    b = b[:25]
-                    appearances = appearances[:25]
-                ax.fill_between(appearances, a, b,
-                                facecolor=constants.RANKS_COLORS[str(r)], alpha=0.3, linewidth=1)
+                appearances = appearances[:25]
+                low_rewards = low_rewards[:25]
+                high_rewards = high_rewards[:25]
+            ax = sns.lineplot(data=df, x=appearances, y=low_rewards,
+                              hue=constants.RANK, ax=axs[i], sizes=(constants.LOW_REWARD, constants.HIGH_REWARD))
+            ax = sns.lineplot(data=df, x=appearances, y=high_rewards,
+                              hue=constants.RANK, ax=axs[i], sizes=(constants.LOW_REWARD, constants.HIGH_REWARD))
+            for k in range(3):
+                ax.lines[k].set_linestyle("--")
             axs[i].set_title(f"Observed accuracy of condition {condition} over trials")
+            labels = [f"{constants.LOW_REWARD} - {constants.REWARDS_BY_RANK[i][constants.LOW_REWARD]}" for i in
+                      [2, 1, 0]] + [f"{constants.HIGH_REWARD} - {constants.REWARDS_BY_RANK[i][constants.HIGH_REWARD]}"
+                                    for i in [2, 1, 0]]
+            ax.legend(labels)
             ax.set(ylim=(0, 1))
             ax.set(xlim=(1, None))
-        plt.savefig(f"observed_accuracy_over_trials"
-                    f"{'' if feedback else '_no_feedback'}_with_ranges.pdf")
+        plt.savefig(f"observed_accuracy_over_trials{'' if feedback else '_no_feedback'}_with_ranges.pdf")
 
     def observed_accuracy_over_each_trial_in_condition_ranks(self, feedback=True):
         """
@@ -182,6 +169,8 @@ class ShortTermLearningAcrossConditions:
         sns.scatterplot(data=df, x=constants.TIME_DIFF, y=constants.OBSERVED_ACCURACY,
                         hue=constants.CONDITION,
                         palette=['green', 'orange', 'dodgerblue', 'red'], legend='full')
+        sns.lmplot(data=df, x=constants.TIME_DIFF, y=constants.OBSERVED_ACCURACY, hue=constants.CONDITION,
+                   palette=['green', 'orange', 'dodgerblue', 'red'], legend='full')
         plt.savefig(
             f"observed_accuracy_within_time_difference{'' if feedback else '_no_feedback'}.pdf")
 
