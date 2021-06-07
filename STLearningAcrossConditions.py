@@ -159,11 +159,10 @@ class ShortTermLearningAcrossConditions:
         plt.title(f"Observed accuracy within time differences across all conditions with"
                   f"{'' if feedback else ' no'} feedback")
         df = self.da.get_within_condition_observed_accuracy_over_time_difference_all_conditions(feedback)
-        sns.scatterplot(data=df, x=constants.TIME_DIFF, y=constants.OBSERVED_ACCURACY,
-                        hue=constants.CONDITION,
-                        palette=['green', 'orange', 'dodgerblue', 'red'], legend='full')
-        sns.lmplot(data=df, x=constants.TIME_DIFF, y=constants.OBSERVED_ACCURACY, hue=constants.CONDITION,
-                   palette=['green', 'orange', 'dodgerblue', 'red'], legend='full')
+        g = sns.lmplot(data=df.loc[(df[constants.CONDITION] == 2) | (df[constants.CONDITION] == 4)],
+                       x=constants.TIME_DIFF, y=constants.OBSERVED_ACCURACY, hue=constants.CONDITION,
+                       palette=['green', 'orange'], legend='full', truncate=False)
+        g.set(ylim=(0, None))
         plt.savefig(
             f"observed_accuracy_within_time_difference{'' if feedback else '_no_feedback'}.pdf")
 
