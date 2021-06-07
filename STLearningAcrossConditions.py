@@ -87,16 +87,9 @@ class ShortTermLearningAcrossConditions:
         fig.suptitle(f"Observed accuracy for possible conditions with{'' if feedback else ' no'} feedback")
         for i, condition in enumerate(constants.CONDITIONS):
             df = self.da.get_observed_accuracy_mean_per_condition_all_data_ranges(condition, feedback)
-            appearances = constants.APPEARANCES
-            low_rewards = constants.LOW_REWARD
-            high_rewards = constants.HIGH_REWARD
-            if not feedback:
-                appearances = appearances[:25]
-                low_rewards = low_rewards[:25]
-                high_rewards = high_rewards[:25]
-            ax = sns.lineplot(data=df, x=appearances, y=low_rewards,
+            ax = sns.lineplot(data=df, x=constants.APPEARANCES, y=constants.LOW_REWARD,
                               hue=constants.RANK, ax=axs[i], sizes=(constants.LOW_REWARD, constants.HIGH_REWARD))
-            ax = sns.lineplot(data=df, x=appearances, y=high_rewards,
+            ax = sns.lineplot(data=df, x=constants.APPEARANCES, y=constants.HIGH_REWARD,
                               hue=constants.RANK, ax=axs[i], sizes=(constants.LOW_REWARD, constants.HIGH_REWARD))
             for k in range(3):
                 ax.lines[k].set_linestyle("--")
@@ -191,3 +184,6 @@ class ShortTermLearningAcrossConditions:
             ax.set(ylim=(0, 1))
         plt.savefig(f"relative_accuracy_within_time_difference"
                     f"_per_condition{'' if feedback else '_no_feedback'}.pdf")
+
+    def time_trajectory_for_both_feedback_no_feedback_trials(self):
+        self.da.get_time_trajectory_for_both_feedback_no_feedback_trials()

@@ -227,6 +227,17 @@ class DataAnalyser:
         all_ranks[constants.RELATIVE_ACCURACY] = all_ranks[constants.RELATIVE_ACCURACY]
         return all_ranks
 
+    def _add_one_dataframe_to_another(self, df, df1):
+        for col in [constants.OBSERVED_ACCURACY, constants.LOW_REWARD, constants.HIGH_REWARD]:
+            if not df[col].empty and not df[col].isnull().all():
+                if len(df.index) > len(df1.index):
+                    df[col] = df[col] + df1[col].reindex_like(df[col]).fillna(df1[col].iloc[-1])
+                else:
+                    df[col] = df1[col] + df[col].reindex_like(df1[col]).fillna(df[col].iloc[-1])
+            else:
+                df[col] = df1[col]
+        return df
+
     def get_observed_accuracy_mean_per_condition_all_data_ranges(self, condition, feedback=True):
         """
         :param condition: the condition to get relative accuracy mean of its stimuli as a number
@@ -235,9 +246,9 @@ class DataAnalyser:
         their ranks according to all presented stimuli.
         """
         df = pd.DataFrame(dtype=float)
-        df[constants.HIGH_REWARD] = 0
-        df[constants.LOW_REWARD] = 0
+        df[constants.OBSERVED_ACCURACY], df[constants.LOW_REWARD], df[constants.HIGH_REWARD] = 0, 0, 0
         rank_to_add = pd.DataFrame(dtype=float)
+        rank_to_add[constants.OBSERVED_ACCURACY], rank_to_add[constants.LOW_REWARD], rank_to_add[constants.HIGH_REWARD] = 0, 0, 0
         all_ranks = pd.DataFrame(dtype=float)
         for rank in constants.RANKS:
             for db_num, stimuli in enumerate(self.stimuli_list):
@@ -254,21 +265,23 @@ class DataAnalyser:
                     df1[constants.HIGH_REWARD], df1[constants.LOW_REWARD] = 0, 0
                     df1[constants.REWARDS_BY_RANK_[rank][round(stim[constants.REWARD], 2)]] = df1[
                         constants.REWARDS_BY_RANK_[rank][round(stim[constants.REWARD], 2)]].add(
-                        df1[constants.OBSERVED_ACCURACY])
-                    df1 = df1.astype(float)
-                    df = df.add(df1, axis=1, fill_value=0)
+                        df1[constants.OBSERVED_ACCURACY]).astype(float)
+                    df = self._add_one_dataframe_to_another(df, df1)
                 df[constants.OBSERVED_ACCURACY] = df[constants.OBSERVED_ACCURACY].div(stim_amount)
                 if stim_amount - high_reward_amount:
                     df[constants.LOW_REWARD] = df[constants.LOW_REWARD].div(stim_amount - high_reward_amount)
                 if high_reward_amount:
                     df[constants.HIGH_REWARD] = df[constants.HIGH_REWARD].div(high_reward_amount)
-                rank_to_add = rank_to_add.add(df, axis=1, fill_value=0)
+                rank_to_add = self._add_one_dataframe_to_another(rank_to_add, df)
                 df = pd.DataFrame(dtype=float)
+                df[constants.OBSERVED_ACCURACY], df[constants.LOW_REWARD], df[constants.HIGH_REWARD] = 0, 0, 0
             rank_to_add = rank_to_add.divide(len(self.stimuli_list))
             rank_to_add[constants.APPEARANCES] = range(1, len(rank_to_add) + 1)
             rank_to_add[constants.RANK] = str(rank)
             all_ranks = pd.concat([all_ranks, rank_to_add], axis=0)
             rank_to_add = pd.DataFrame()
+            rank_to_add[constants.OBSERVED_ACCURACY], rank_to_add[constants.LOW_REWARD], rank_to_add[
+                constants.HIGH_REWARD] = 0, 0, 0
         all_ranks[constants.OBSERVED_ACCURACY] = all_ranks[constants.OBSERVED_ACCURACY]
         return all_ranks
 

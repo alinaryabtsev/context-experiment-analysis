@@ -15,7 +15,7 @@ def main():
     # rt_analyser.mean_reaction_time_correct_vs_incorrect_all_blocks()
     # rt_analyser.mean_reaction_time_correct_vs_incorrect_per_condition()
 
-    stl_analyser.observed_accuracy_over_each_trial_in_condition_ranks_ranges(False)
+    stl_analyser.observed_accuracy_over_each_trial_in_condition_ranks_ranges(True)
     # stl_analyser.observed_accuracy_within_time_differences(True)
     # stl_analyser.observed_accuracy_within_time_differences_bar_plots(True)
 
