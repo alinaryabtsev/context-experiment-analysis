@@ -184,5 +184,3 @@ class ShortTermLearningAcrossConditions:
         plt.savefig(f"relative_accuracy_within_time_difference"
                     f"_per_condition{'' if feedback else '_no_feedback'}.pdf")
 
-    def time_trajectory_for_both_feedback_no_feedback_trials(self):
-        self.da.get_time_trajectory_for_both_feedback_no_feedback_trials()
