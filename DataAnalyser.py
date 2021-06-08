@@ -1,7 +1,7 @@
 import constants
 import pandas as pd
 from datetime import datetime
-import numpy as np
+from TimesHelper import TimeHelper
 
 
 class DataAnalyser:
@@ -315,38 +315,7 @@ class DataAnalyser:
         all_ranks[constants.OBSERVED_ACCURACY] = all_ranks[constants.OBSERVED_ACCURACY].astype(float)
         return all_ranks
 
-    @staticmethod
-    def _calculate_time_differences_between_blocks(stimuli, start_block, end_block):
-        """
-        Gets two blocks' numbers of some stimuli and calculates time difference between last
-        appearance of the first block and time difference of the first appearance of the second
-        block.
-        :param stimuli: stimuli appearances dataframe
-        :param start_block: block number of the first block to calculate time difference
-        :param end_block: block number of the seconds block to calculate time difference
-        :return: time difference in hours between two appearances of the blocks
-        """
-        t1 = datetime.fromtimestamp(stimuli.loc[stimuli[constants.BLOCK] == start_block].tail(
-            1).iloc[0][constants.CHOICE_TIME] / 1000)
-        t2 = datetime.fromtimestamp(stimuli.loc[stimuli[constants.BLOCK] == end_block].head(
-            1).iloc[0][constants.CHOICE_TIME] / 1000)
-        return abs(t1 - t2).total_seconds() / 3600
-
-    @staticmethod
-    def _calculate_time_differences_between_appearances(first_appearance, second_appearance):
-        """
-        Gets two blocks' numbers of some stimuli and calculates time difference between last
-        appearance of the first block and time difference of the first appearance of the second
-        block.
-        :param first_appearance: first appearance of a stimuli in a trial Series
-        :param second_appearance: first appearance of a stimuli in a trial Series
-        :return: time difference in hours between two appearances of the stimuli
-        """
-        t1 = datetime.fromtimestamp(first_appearance.iloc[0][constants.CHOICE_TIME] / 1000)
-        t2 = datetime.fromtimestamp(second_appearance.iloc[0][constants.CHOICE_TIME] / 1000)
-        return abs(t1 - t2).total_seconds() / 3600
-
-    def get_within_condition_accuracy_over_time_difference(self, condition, feedback=True):
+    def get_within_condition_relative_accuracy_over_time_difference(self, condition, feedback=True):
         """
         Model within condition- accuracy (within feedback trials) but as a function of how many
         blocks they were learned apart.
@@ -386,10 +355,10 @@ class DataAnalyser:
                     continue
                 stimuli_blocks = stimuli_trials[constants.BLOCK].unique()
                 if condition in constants.CONDITIONS[:2]:
-                    time_diff = DataAnalyser._calculate_time_differences_between_blocks(
+                    time_diff = TimeHelper.calculate_time_differences_between_blocks(
                         stimuli_trials, *stimuli_blocks)
                 else:
-                    time_diff = DataAnalyser._calculate_time_differences_between_blocks(
+                    time_diff = TimeHelper.calculate_time_differences_between_blocks(
                         stimuli_trials, *stimuli_blocks[1:3])
                 df = df.append(pd.DataFrame({constants.RELATIVE_ACCURACY: [relative_accuracy],
                                              constants.TIME_DIFF: [time_diff],
@@ -440,11 +409,9 @@ class DataAnalyser:
                     continue
                 stimuli_blocks = stimuli_trials[constants.BLOCK].unique()
                 if condition in constants.CONDITIONS[:2]:
-                    time_diff = DataAnalyser._calculate_time_differences_between_blocks(
-                        stimuli_trials, *stimuli_blocks)
+                    time_diff = TimeHelper.calculate_time_differences_between_blocks(stimuli_trials, *stimuli_blocks)
                 else:
-                    time_diff = DataAnalyser._calculate_time_differences_between_blocks(
-                        stimuli_trials, *stimuli_blocks[1:3])
+                    time_diff = TimeHelper.calculate_time_differences_between_blocks(stimuli_trials, *stimuli_blocks[1:3])
                 df = df.append(pd.DataFrame({constants.OBSERVED_ACCURACY: [observed_accuracy],
                                              constants.TIME_DIFF: [time_diff],
                                              constants.NUMBER: [stim[constants.NUMBER]]}),
@@ -465,7 +432,7 @@ class DataAnalyser:
         """
         df = pd.DataFrame()
         for condition in constants.CONDITIONS:
-            df = df.append(self.get_within_condition_accuracy_over_time_difference(condition, feedback))
+            df = df.append(self.get_within_condition_relative_accuracy_over_time_difference(condition, feedback))
         return df
 
     def get_within_condition_observed_accuracy_over_time_difference_all_conditions(self, feedback=True):

@@ -176,7 +176,7 @@ class ShortTermLearningAcrossConditions:
         fig.suptitle(f"relative accuracy within time differences for possible conditions with"
                      f"{'' if feedback else ' no'} feedback")
         for i, condition in enumerate(constants.CONDITIONS):
-            df = self.da.get_within_condition_accuracy_over_time_difference(condition, feedback)
+            df = self.da.get_within_condition_relative_accuracy_over_time_difference(condition, feedback)
             ax = sns.scatterplot(data=df, x=constants.TIME_DIFF, y=constants.RELATIVE_ACCURACY,
                                  ax=axs[i])
             ax.set_title(f"relative accuracy within time difference of condition {condition}")
