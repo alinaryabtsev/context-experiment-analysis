@@ -10,7 +10,7 @@ class QuestionnaireManager:
         :param answer: string which represents an answer for sleep questionnaire
         :return: number as the sleep quality
         """
-        m = re.match('.*overall=(\d+)')
+        m = re.match(".*overall=(\d+)", answer)
         if m:
             return m.group(1)
         else:
