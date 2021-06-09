@@ -2,6 +2,10 @@ import constants
 import pandas as pd
 from datetime import datetime
 from TimesHelper import TimeHelper
+from QuestionnaireManager import QuestionnaireManager
+
+class DataAnalyserException(Exception):
+    pass
 
 
 class DataAnalyser:
@@ -14,6 +18,7 @@ class DataAnalyser:
         self.stimuli = self.stimuli_list[0]
         self.stimuli_by_condition = {cond: self.stimuli.loc[(self.stimuli[constants.CONDITION] ==
                                                              cond)] for cond in range(1, 5)}
+        self.sleep_answers_list = self.db.get_all_sleep_questionnaire_answers()
 
     def filter_trials_by_condition_and_probability(self, condition, probability, feedback):
         filtered_stimuli = self.stimuli_by_condition[condition]
@@ -448,3 +453,44 @@ class DataAnalyser:
             df = df.append(self.get_within_condition_observed_accuracy_over_time_difference(condition,
                                                                                    feedback))
         return df
+
+    def _get_all_trials_between_two_timestamps(self, first_timestamp, second_timestamp, db_num):
+        """
+        Gets all trials between two timestamps
+        :param first_timestamp: first timestamp. Might be None
+        :param second_timestamp: secind timestamp. Might be None
+        :return: a list of dataframes with trials between two timestamps relating to each database
+        """
+        trials = self.trials_list[db_num]
+        if first_timestamp and second_timestamp:
+            return trials.loc[(trials[constants.CHOICE_TIME] >= first_timestamp) |
+                              (trials[constants.CHOICE_TIME] <= second_timestamp)]
+        elif first_timestamp and not second_timestamp:
+            return trials.loc[(trials[constants.CHOICE_TIME] >= first_timestamp)]
+        elif second_timestamp and not first_timestamp:
+            return trials.loc[(trials[constants.CHOICE_TIME] <= second_timestamp)]
+
+    def _get_success_rate_over_trials(self, trials):
+        """
+        Gets success rate (all times subject won / all trials) over given trials
+        :param trials: dataframe of trials to get success rate
+        :return: success rate value
+        """
+        return sum(trials[constants.OUTCOME].astype(int)) / len(trials)
+
+    def get_mean_success_over_sleep_quality(self):
+        """
+        :return: a dataframe with sucess average for some day according to sleep quality in that day
+        """
+        sleep_sucess = {str(score): [] for score in range(0, 101)}
+        for db_num, db in enumerate(self.sleep_answers_list):
+            for i, answer in db.iterrows():
+                score = QuestionnaireManager.get_sleep_quality_from_sleep_answer(answer.loc[constants.ANSWER])
+                first_time = answer.loc[constants.ANSWER_TIME]
+                # the last time questionnaore is answered is not in interval
+                second_time = None if i == len(db) - 1 else db.iloc[i+1].loc[constants.ANSWER_TIME]
+                trials = self._get_all_trials_between_two_timestamps(first_time, second_time, db_num)
+                if not trials.empty:
+                    sleep_sucess[score].append(self._get_success_rate_over_trials(trials))
+        sleep_sucess = {s: sum(sleep_sucess[s]) / len(sleep_sucess[s]) for s in sleep_sucess if sleep_sucess[s]}
+        return pd.DataFrame(sleep_sucess.items(), columns=[constants.SLEEP_SCORE, constants.AVERAGE_ACCURACY])

@@ -20,6 +20,10 @@ REWARD = "reward"
 RANK = "rank"
 CONDITION = "condition"
 
+# questionnaire table parameters
+ANSWER_TIME = "answer_time"
+ANSWER = "answer"
+
 # feedback values
 WITH_FEEDBACK = 1
 NO_FEEDBACK = 0
@@ -34,6 +38,7 @@ FAILURE = 0
 
 # general
 CONDITIONS = [1, 2, 3, 4]
+CONDITIONS_DICT = {1: "3-2", 2: "6-2", 3: "3-4", 4: "6-4"}
 PROBABILITIES = {1: "1", 2/3: "2/3", 1/3: "1/3", 0: "0"}
 PROBABILITIES_MATTER = {1: "1", 2/3: "2/3", 1/3: "1/3"}
 RANKS = [2, 1, 0]
@@ -54,3 +59,5 @@ APPEARANCES = "appearances"
 RELATIVE_ACCURACY = "relative accuracy"
 OBSERVED_ACCURACY = "observed accuracy"
 TIME_DIFF = "time difference"
+SLEEP_SCORE = "sleep score"
+AVERAGE_ACCURACY = "average accuracy"

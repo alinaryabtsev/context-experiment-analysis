@@ -184,3 +184,16 @@ class ShortTermLearningAcrossConditions:
         plt.savefig(f"relative_accuracy_within_time_difference"
                     f"_per_condition{'' if feedback else '_no_feedback'}.pdf")
 
+    def average_accuracy_over_sleep_quality(self):
+        """
+        Plots average of the subjects accuracy in some day according to their sleep qulaity
+        """
+        df = self.da.get_mean_success_over_sleep_quality()
+        df[constants.SLEEP_SCORE] = df[constants.SLEEP_SCORE].astype(int)
+
+        ax = sns.jointplot(data=df, x=constants.SLEEP_SCORE, y=constants.AVERAGE_ACCURACY, kind="reg",
+                           scatter=True, ylim=(0, 1))
+        ax.fig.suptitle("Average accuracy in a day over sleep quality")
+        ax.fig.subplots_adjust(top=0.93)
+
+        plt.savefig("average_accuracy_over_sleep_quality.pdf")

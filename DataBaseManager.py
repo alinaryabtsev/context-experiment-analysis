@@ -8,6 +8,8 @@ SQL_QUERY_GET_ALL_STIMULI = "SELECT number, reward, rank, condition FROM stimuli
                             "WHERE condition >= 1 AND condition <= 4"
 SQL_QUERY_GET_TRIALS = "SELECT block, stim1, stim2, feedback, choice, outcome, choice_time, " \
                        "stim_time FROM trials WHERE block > 12 AND block < 99"
+SQL_QUERY_GET_SLEEP_ANSWERS = "SELECT questionnaire_number, answer, answer_time FROM answers WHERE " \
+                              "questionnaire_type = 5 AND question = 0 AND questionnaire_number != 0"
 
 
 class DataBaseManager:
@@ -40,9 +42,15 @@ class DataBaseManager:
     def get_all_trials_with_stimuli(self):
         """
         :return: A list of data frames according to given databases.
-                Each data frame of trials including block number, stimuli 1 number, stimuli 2 number,
-                feedback value: 0/1, choice value: 0/1 (first/second stimuli), outcome value: 0/1,
-                choice time: UTC timestamp when chosen, stimuli time: UTC timestamp when appeared
+                 Each data frame of trials includes block number, stimuli 1 number, stimuli 2 number,
+                 feedback value: 0/1, choice value: 0/1 (first/second stimuli), outcome value: 0/1,
+                 choice time: UTC timestamp when chosen, stimuli time: UTC timestamp when appeared
         """
         return [pd.read_sql_query(SQL_QUERY_GET_TRIALS, conn) for conn in self.conns]
 
+    def get_all_sleep_questionnaire_answers(self):
+        """
+        :return: A list of data frames according to given databases.
+                 Each data frame of trials includes questionaire number, answer, answer time.
+        """
+        return [pd.read_sql_query(SQL_QUERY_GET_SLEEP_ANSWERS, conn) for conn in self.conns]
