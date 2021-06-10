@@ -1,7 +1,9 @@
 # databases file names
 DATABASE_FILE_NAME = "001_schedule.db"
 PATH_TO_FILES = './/schedules//'
-SUBJECTS = ["001", 1003, 1006, 1010, 1018, 1019, 1021, 1022]
+SUBJECTS = ["001", 1002, 1003, 1005, 1006, 1009, 1010, 1011, 1015, 1016, 1017, 1018,
+            1019, 1021, 1022, 100, 2007, 2012, 2013, 2014, 2020, 2023, 2024, 3001, 3002,
+            3008]
 DATABASES = [str(num) + "_schedule.db" for num in SUBJECTS]
 
 # trials table parameters names:
