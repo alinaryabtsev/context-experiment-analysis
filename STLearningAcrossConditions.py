@@ -14,22 +14,6 @@ class ShortTermLearningAcrossConditions:
     def __init__(self, db):
         self.da = DataAnalyser(db)
 
-    def accuracy_over_time_condition_per_probability(self, condition):
-        fig, axs = plt.subplots(nrows=3, figsize=(6, 18))
-        fig.suptitle(f"accuracy over time condition {condition} for possible probabilities")
-        i = 0
-        for probability, p in constants.PROBABILITIES_MATTER.items():
-            df = self.da.get_trials_accuracy_by_condition_and_probability(condition, probability,
-                                                                          constants.WITH_FEEDBACK)
-            sns_plot = sns.scatterplot(x="blocks", y="success rate", data=df, ax=axs[i])
-            axs[i].set_title(f"accuracy over time - probability {p}")
-            i += 1
-        plt.savefig(f"accuracy_over_time_by_probabilities_condition_{condition}.pdf")
-
-    def accuracy_over_time_by_probabilities(self):
-        for condition in constants.CONDITIONS:
-            self.accuracy_over_time_condition_per_probability(condition)
-
     def observed_accuracy_over_each_trial_in_condition_ranks(self, feedback=True):
         """
         Generates graphs per each condition, where it takes the average of observed success rate
@@ -140,10 +124,6 @@ class ShortTermLearningAcrossConditions:
         plt.savefig(f"observed_accuracy_over_trials{'' if feedback else '_no_feedback'}_with_ranges_averaged.pdf")
         plt.clf()
 
-        X axis: Time Difference
-        Y Axis:   1) Feedback accuracy of second session
-                  2) No Feedback Accuracy (separate for each condition)
-
     def observed_accuracy_within_time_differences_conditions_2_4(self, feedback=True):
         """
         Model within conditions 6-4 and 6-2 - by observed accuracy (within feedback trials) but as a function of
@@ -185,24 +165,6 @@ class ShortTermLearningAcrossConditions:
             t.set_text(l)
         plt.savefig(
             f"observed_accuracy_within_time_difference.pdf")
-
-    # def relative_accuracy_within_time_differences_distinct_plots(self, feedback=True):
-    #     """
-    #     plotting to distinct graphs relative accuracy (within feedback trials) but as a function of
-    #     how many blocks they were learned apart.
-    #     :param feedback: plot the data with feedback or without
-    #     """
-    #     fig, axs = plt.subplots(nrows=4, figsize=(10, 30))
-    #     fig.suptitle(f"relative accuracy within time differences for possible conditions with"
-    #                  f"{'' if feedback else ' no'} feedback")
-    #     for i, condition in enumerate(constants.CONDITIONS):
-    #         df = self.da.get_within_condition_relative_accuracy_over_time_difference(condition, feedback)
-    #         ax = sns.scatterplot(data=df, x=constants.TIME_DIFF, y=constants.RELATIVE_ACCURACY,
-    #                              ax=axs[i])
-    #         ax.set_title(f"relative accuracy within time difference of condition {condition}")
-    #         ax.set(ylim=(0, 1))
-    #     plt.savefig(f"relative_accuracy_within_time_difference"
-    #                 f"_per_condition{'' if feedback else '_no_feedback'}.pdf")
 
     def average_accuracy_over_sleep_quality(self):
         """
