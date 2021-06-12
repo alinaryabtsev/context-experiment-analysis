@@ -45,6 +45,9 @@ PROBABILITIES = {1: "1", 2/3: "2/3", 1/3: "1/3", 0: "0"}
 PROBABILITIES_MATTER = {1: "1", 2/3: "2/3", 1/3: "1/3"}
 RANKS = [2, 1, 0]
 RANKS_COLORS = {"2": "#b5edef", "1": "#feab98", "0": "#befe61"}
+RANK_LABELS = ["best", "middle", "worst"]
+RANK_REWARD_LABELS = ["best rank - 0.67", "middle rank - 0.33", "worst rank - 0",
+                      "best rank - 1", "middle rank - 0.67", "worst rank - 0.33"]
 RANKS_MATTER = [2, 1]
 HIGH_REWARD = "high reward"
 LOW_REWARD = "low reward"
