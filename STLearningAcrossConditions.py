@@ -63,6 +63,7 @@ class ShortTermLearningAcrossConditions:
         ax.set(ylim=(0, 1))
         ax.set(xlim=(1, None))
         plt.savefig(f"observed_accuracy_over_trials{'' if feedback else '_no_feedback'}.pdf")
+        plt.clf()
 
     def observed_accuracy_over_each_trial_in_condition_ranks_ranges(self, feedback=True):
         """
@@ -93,6 +94,7 @@ class ShortTermLearningAcrossConditions:
             axs[math.floor(i/2)][i % 2].set_title(f"Observed accuracy of condition {constants.CONDITIONS_DICT[condition]} over trials")
             fig.tight_layout()
         plt.savefig(f"observed_accuracy_over_trials{'' if feedback else '_no_feedback'}_with_ranges.pdf")
+        plt.clf()
 
     def observed_accuracy_over_each_trial_in_condition_ranks_ranges_averaged(self, feedback=True):
         """
@@ -143,8 +145,8 @@ class ShortTermLearningAcrossConditions:
         g.set(ylim=(0, None))
         for t, l in zip(g._legend.texts, [constants.CONDITIONS_DICT[2], constants.CONDITIONS_DICT[4]]):
             t.set_text(l)
-        plt.savefig(
-            f"observed_accuracy_within_time_difference_for_{'' if feedback else '_no_feedback'}.pdf")
+
+        plt.savefig(f"observed_accuracy_within_time_difference_for_{'' if feedback else '_no_feedback'}.pdf")
 
     def observed_accuracy_within_time_differences(self):
         """
@@ -163,8 +165,9 @@ class ShortTermLearningAcrossConditions:
         g.set(ylim=(0, None))
         for t, l in zip(g._legend.texts, constants.CONDITIONS_DICT.values()):
             t.set_text(l)
-        plt.savefig(
-            f"observed_accuracy_within_time_difference.pdf")
+
+        plt.savefig(f"observed_accuracy_within_time_difference.pdf")
+        plt.clf()
 
     def average_accuracy_over_sleep_quality(self):
         """

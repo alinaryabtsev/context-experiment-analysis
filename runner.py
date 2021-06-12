@@ -27,8 +27,9 @@ def main():
     stl_analyser.observed_accuracy_over_each_trial_in_condition_ranks_ranges_averaged(True)
     stl_analyser.observed_accuracy_over_each_trial_in_condition_ranks_ranges_averaged(False)
 
-    # stl_analyser.relative_accuracy_within_time_differences(True)
-    # stl_analyser.relative_accuracy_within_time_differences(False)
+    # stl_analyser.relative_accuracy_within_time_differences()
+    # stl_analyser.observed_accuracy_within_time_differences_conditions_2_4(True)
+    # stl_analyser.observed_accuracy_within_time_differences_conditions_2_4(False)
 
     # stl_analyser.average_accuracy_over_sleep_quality()
 
