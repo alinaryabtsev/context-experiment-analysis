@@ -119,45 +119,19 @@ class DataAnalyser:
                           ((trials[constants.STIM1] == stim) |
                            (trials[constants.STIM2] == stim))]
 
-    def _get_stimuli_relative_accuracy(self, stim, feedback=True, db_num=0):
-        """
-        :param stim: stimuli number
-        :param feedback: Stimuli with feedback
-        :param db_num: number of current db to check
-        :return: a data frame of relative accuracy of a stimuli
-
-        Relative accuracy: for e.g. stim 4- calculate all previous trials with feedback when stim 4
-        was chosen. Calculate % of those trials where outcome was 1.
-        Relative Correct(stim 4)= (times stim 4 was chosen and outcome==1)/(number of times stim 4
-        was chosen) (only need trials table)
-        """
-        all_stimuli_appearances = self._get_all_appearances_of_a_stimuli(stim, feedback, db_num)
-        relative_accuracy = [0] * len(all_stimuli_appearances.index)
-        chosen_right, chosen, index = 0, 0, 0
-        for _, stimuli in all_stimuli_appearances.iterrows():
-            chosen += 1
-            if stimuli[constants.OUTCOME] == constants.SUCCESS:
-                chosen_right += 1
-            relative_accuracy[index] = chosen_right / chosen
-            index += 1
-        relative_accuracy = relative_accuracy[:constants.STIMULI_APPEARANCES_WITH_FEEDBACK]
-        return pd.DataFrame(index=list(range(1, len(relative_accuracy) + 1)),
-                            data=relative_accuracy,
-                            columns=[constants.RELATIVE_ACCURACY])
-
     def _get_stimuli_observed_accuracy(self, stim, feedback=True, db_num=0):
         """
             :param stim: stimuli number
             :param feedback: Stimuli with feedback
             :param db_num: number of current db to check
-            :return: a data frame of relative accuracy of a stimuli
+            :return: a data frame of observed accuracy of a stimuli
 
-            Observed accuracy: unlike relative accuracy, it's also considered when the stimuli is
+            Observed accuracy: unlike observed accuracy, it's also considered when the stimuli is
             not chosen and it shouldn't has been (meaning if outcome = 0 and other stim fixed
             probability is higher)
         """
         all_stimuli_appearances = self._get_all_appearances_of_a_stimuli(stim, feedback, db_num)
-        observed_accuracy = [0] * len(all_stimuli_appearances.index)
+        observed_accuracy = []
         chosen_right, chosen, index = 0, 0, 0
         for _, stimuli in all_stimuli_appearances.iterrows():
             chosen += 1
@@ -168,8 +142,7 @@ class DataAnalyser:
                                                 (choice == constants.FIRST and not first_better)
                                                 or (choice == constants.SECOND and first_better)):
                 chosen_right += 1
-            observed_accuracy[index] = chosen_right / chosen
-            index += 1
+            observed_accuracy.append(chosen_right / chosen)
         observed_accuracy = observed_accuracy[:constants.STIMULI_APPEARANCES_WITH_FEEDBACK]
         return pd.DataFrame(index=list(range(1, len(observed_accuracy) + 1)),
                             data=observed_accuracy,
@@ -188,50 +161,6 @@ class DataAnalyser:
         reward2 = stimuli.loc[stimuli[constants.NUMBER] == stim2][constants.REWARD].values[0]
         return reward1 > reward2
 
-    def get_relative_accuracy_mean_per_condition_all_data(self, condition, feedback=True):
-        """
-        :param condition: the condition to get relative accuracy mean of its stimuli as a number
-        :param feedback: feedback: True - then only with feedback.
-        :return: a data frame with mean of all given databases of all stimuli relative accuracy,
-        their ranks according to all presented stimuli.
-        """
-        df = pd.DataFrame(dtype=float)
-        df[constants.HIGH_REWARD] = 0
-        df[constants.LOW_REWARD] = 0
-        rank_to_add = pd.DataFrame(dtype=float)
-        all_ranks = pd.DataFrame(dtype=float)
-        for rank in constants.RANKS:
-            for db_num, stimuli in enumerate(self.stimuli_list):
-                stimuli_by_condition = stimuli.loc[(stimuli[constants.CONDITION] == condition)]
-                stimuli_by_rank = stimuli_by_condition.loc[(stimuli_by_condition[constants.RANK] == rank)]
-                stim_amount, high_reward_amount = 0, 0
-                for _, stim in stimuli_by_rank.iterrows():
-                    df1 = self._get_stimuli_relative_accuracy(stim[constants.NUMBER], feedback, db_num)
-                    if df1.empty:
-                        continue
-                    stim_amount += 1
-                    high_reward_amount += 1 if round(stim[constants.REWARD], 2) == constants.REWARDS_BY_RANK[rank][
-                        constants.HIGH_REWARD] else 0
-                    df1[constants.HIGH_REWARD], df1[constants.LOW_REWARD] = 0, 0
-                    df1[constants.REWARDS_BY_RANK_[rank][round(stim[constants.REWARD], 2)]] = df1[
-                        constants.REWARDS_BY_RANK_[rank][round(stim[constants.REWARD], 2)]].add(df1[constants.RELATIVE_ACCURACY])
-                    df1 = df1.astype(float)
-                    df = df.add(df1, axis=1, fill_value=0)
-                df[constants.RELATIVE_ACCURACY] = df[constants.RELATIVE_ACCURACY].div(stim_amount)
-                if stim_amount - high_reward_amount:
-                    df[constants.LOW_REWARD] = df[constants.LOW_REWARD].div(stim_amount - high_reward_amount)
-                if high_reward_amount:
-                    df[constants.HIGH_REWARD] = df[constants.HIGH_REWARD].div(high_reward_amount)
-                rank_to_add = rank_to_add.add(df, axis=1, fill_value=0)
-                df = pd.DataFrame(dtype=float)
-            rank_to_add = rank_to_add.divide(len(self.stimuli_list))
-            rank_to_add[constants.APPEARANCES] = range(1, len(rank_to_add) + 1)
-            rank_to_add[constants.RANK] = str(rank)
-            all_ranks = pd.concat([all_ranks, rank_to_add], axis=0)
-            rank_to_add = pd.DataFrame()
-        all_ranks[constants.RELATIVE_ACCURACY] = all_ranks[constants.RELATIVE_ACCURACY]
-        return all_ranks
-
     def _add_one_dataframe_to_another(self, df, df1):
         for col in [constants.OBSERVED_ACCURACY, constants.LOW_REWARD, constants.HIGH_REWARD]:
             if not df[col].empty and not df[col].isnull().all():
@@ -245,9 +174,9 @@ class DataAnalyser:
 
     def get_observed_accuracy_mean_per_condition_all_data_ranges(self, condition, feedback=True):
         """
-        :param condition: the condition to get relative accuracy mean of its stimuli as a number
+        :param condition: the condition to get observed accuracy mean of its stimuli as a number
         :param feedback: feedback: True - then only with feedback.
-        :return: a data frame with mean of all given databases of all stimuli relative accuracy,
+        :return: a data frame with mean of all given databases of all stimuli observed accuracy,
         their ranks according to all presented stimuli.
         """
         df = pd.DataFrame(dtype=float)
@@ -259,19 +188,18 @@ class DataAnalyser:
             for db_num, stimuli in enumerate(self.stimuli_list):
                 stimuli_by_condition = stimuli.loc[(stimuli[constants.CONDITION] == condition)]
                 stimuli_by_rank = stimuli_by_condition.loc[(stimuli_by_condition[constants.RANK] == rank)]
-                stim_amount, high_reward_amount = 0, 0
+                stim_amount, high_reward_amount, df_count = 0, 0, 0
                 for _, stim in stimuli_by_rank.iterrows():
                     df1 = self._get_stimuli_observed_accuracy(stim[constants.NUMBER], feedback, db_num)
-                    if df1.empty:
-                        continue
-                    stim_amount += 1
-                    high_reward_amount += 1 if round(stim[constants.REWARD], 2) == constants.REWARDS_BY_RANK[rank][
-                        constants.HIGH_REWARD] else 0
-                    df1[constants.HIGH_REWARD], df1[constants.LOW_REWARD] = 0, 0
-                    df1[constants.REWARDS_BY_RANK_[rank][round(stim[constants.REWARD], 2)]] = df1[
-                        constants.REWARDS_BY_RANK_[rank][round(stim[constants.REWARD], 2)]].add(
-                        df1[constants.OBSERVED_ACCURACY]).astype(float)
-                    df = self._add_one_dataframe_to_another(df, df1)
+                    if not df1.empty:
+                        stim_amount += 1
+                        high_reward_amount += 1 if round(stim[constants.REWARD], 2) == constants.REWARDS_BY_RANK[rank][
+                            constants.HIGH_REWARD] else 0
+                        df1[constants.HIGH_REWARD], df1[constants.LOW_REWARD] = 0, 0
+                        df1[constants.REWARDS_BY_RANK_[rank][round(stim[constants.REWARD], 2)]] = df1[
+                            constants.REWARDS_BY_RANK_[rank][round(stim[constants.REWARD], 2)]].add(
+                            df1[constants.OBSERVED_ACCURACY]).astype(float)
+                        df = self._add_one_dataframe_to_another(df, df1)
                 df[constants.OBSERVED_ACCURACY] = df[constants.OBSERVED_ACCURACY].div(stim_amount)
                 if stim_amount - high_reward_amount:
                     df[constants.LOW_REWARD] = df[constants.LOW_REWARD].div(stim_amount - high_reward_amount)
@@ -294,7 +222,7 @@ class DataAnalyser:
         """
         :param condition: the condition to get observed accuracy mean of its stimuli as a number
         :param feedback: feedback: True - then only with feedback.
-        :return: a data frame with mean of all given databases of all stimuli relative accuracy,
+        :return: a data frame with mean of all given databases of all stimuli observed accuracy,
         their ranks according to all presented stimuli.
         """
         df = pd.DataFrame()
@@ -319,61 +247,6 @@ class DataAnalyser:
             rank_to_add = pd.DataFrame()
         all_ranks[constants.OBSERVED_ACCURACY] = all_ranks[constants.OBSERVED_ACCURACY].astype(float)
         return all_ranks
-
-    def get_within_condition_relative_accuracy_over_time_difference(self, condition, feedback=True):
-        """
-        Model within condition- accuracy (within feedback trials) but as a function of how many
-        blocks they were learned apart.
-        X axis: Time Difference
-        Y Axis (Separately):   1) Feedback accuracy of second session
-                               2) No Feedback Accuracy (separate for each condition)
-
-        E.g. in a 3-2 condition stimulus 3
-            1. Calculate the end time of the first block with stimulus 3
-            2. Calculate the start time of the 2nd block with stimulus 3
-            __________________________________
-            Time difference
-
-            1. Take all no feedback trials where stimulus 3 was presented
-            2, Take their mean relative accuracy
-
-        _____________________________
-        This produces a single point for the y axis
-
-        Iterate over all stimuli (63 points)
-
-        :param feedback: with or without feedback
-        :param condition: condition of the data
-        :return: data frame for
-        """
-        df = pd.DataFrame()
-        all_data = pd.DataFrame()
-        for db_num, stimuli in enumerate(self.stimuli_list):
-            stimuli_by_condition = stimuli.loc[(stimuli[constants.CONDITION] == condition)]
-            for _, stim in stimuli_by_condition.iterrows():
-                relative_accuracy = \
-                    self._get_stimuli_relative_accuracy(stim[constants.NUMBER], feedback, db_num)[
-                        constants.RELATIVE_ACCURACY].mean()
-                stimuli_trials = self._get_all_appearances_of_a_stimuli(stim[constants.NUMBER],
-                                                                        feedback, db_num)
-                if stimuli_trials.empty:
-                    continue
-                stimuli_blocks = stimuli_trials[constants.BLOCK].unique()
-                if condition in constants.CONDITIONS[:2]:
-                    time_diff = TimeHelper.calculate_time_differences_between_blocks(
-                        stimuli_trials, *stimuli_blocks)
-                else:
-                    time_diff = TimeHelper.calculate_time_differences_between_blocks(
-                        stimuli_trials, *stimuli_blocks[1:3])
-                df = df.append(pd.DataFrame({constants.RELATIVE_ACCURACY: [relative_accuracy],
-                                             constants.TIME_DIFF: [time_diff],
-                                             constants.NUMBER: [stim[constants.NUMBER]]}),
-                               ignore_index=True)
-            all_data = all_data.add(df, axis=1, fill_value=0)
-            df = pd.DataFrame()
-        all_data = all_data.divide(len(self.stimuli_list))
-        all_data[constants.CONDITION] = condition
-        return all_data
 
     def get_within_condition_observed_accuracy_over_time_difference(self, condition, feedback=True):
         """
@@ -427,19 +300,6 @@ class DataAnalyser:
         all_data[constants.CONDITION] = condition
         return all_data
 
-    def get_within_condition_accuracy_over_time_difference_all_conditions(self, feedback=True):
-        """
-        gets data over all conditions of Model within condition- accuracy (within feedback trials)
-        but as a function of how many blocks they were learned apart
-
-        :param feedback: data with feedback or without
-        :return: data frame with all the of the
-        """
-        df = pd.DataFrame()
-        for condition in constants.CONDITIONS:
-            df = df.append(self.get_within_condition_relative_accuracy_over_time_difference(condition, feedback))
-        return df
-
     def get_within_condition_observed_accuracy_over_time_difference_all_conditions(self, feedback=True):
         """
         gets data over all conditions of Model within condition- accuracy (within feedback trials)
@@ -470,13 +330,20 @@ class DataAnalyser:
         elif second_timestamp and not first_timestamp:
             return trials.loc[(trials[constants.CHOICE_TIME] <= second_timestamp)]
 
-    def _get_success_rate_over_trials(self, trials):
+    @staticmethod
+    def _get_success_rate_over_trials(trials):
         """
         Gets success rate (all times subject won / all trials) over given trials
         :param trials: dataframe of trials to get success rate
         :return: success rate value
         """
         return sum(trials[constants.OUTCOME].astype(int)) / len(trials)
+
+    def _get_subject_mean_observed_accuracy(self, db_num):
+        trials = self.trials_list[db_num]
+        stimuli = self.stimuli_list[db_num]
+        for _, stim in stimuli.iterrows():
+            stimuli_trials = self._get_all_appearances_of_a_stimuli(stim[constants.NUMBER], db_num=db_num)
 
     def get_mean_success_over_sleep_quality(self):
         """
@@ -487,10 +354,10 @@ class DataAnalyser:
             for i, answer in db.iterrows():
                 score = QuestionnaireManager.get_sleep_quality_from_sleep_answer(answer.loc[constants.ANSWER])
                 first_time = answer.loc[constants.ANSWER_TIME]
-                # the last time questionnaore is answered is not in interval
+                # the last time questionnaore is answered "has no end time"
                 second_time = None if i == len(db) - 1 else db.iloc[i+1].loc[constants.ANSWER_TIME]
                 trials = self._get_all_trials_between_two_timestamps(first_time, second_time, db_num)
                 if not trials.empty:
-                    sleep_sucess[score].append(self._get_success_rate_over_trials(trials))
+                    sleep_sucess[score].append(DataAnalyser._get_success_rate_over_trials(trials))
         sleep_sucess = {s: sum(sleep_sucess[s]) / len(sleep_sucess[s]) for s in sleep_sucess if sleep_sucess[s]}
         return pd.DataFrame(sleep_sucess.items(), columns=[constants.SLEEP_SCORE, constants.AVERAGE_ACCURACY])
