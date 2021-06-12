@@ -1,8 +1,9 @@
 import constants
 import pandas as pd
 from datetime import datetime
-from TimesHelper import TimeHelper
+from TimesManager import TimeHelper
 from QuestionnaireManager import QuestionnaireManager
+
 
 class DataAnalyserException(Exception):
     pass
