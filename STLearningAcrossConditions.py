@@ -140,12 +140,14 @@ class ShortTermLearningAcrossConditions:
         fig, ax = plt.subplots()
         fig.set_size_inches(18.5, 10.5)
         df = self.da.get_within_condition_observed_accuracy_over_time_difference_all_conditions(feedback)
+        df = df[df[constants.TIME_DIFF] >= constants.MINIMAL_TIME_DIFF]
         g = sns.lmplot(data=df.loc[(df[constants.CONDITION] == 2) | (df[constants.CONDITION] == 4)],
                        x=constants.TIME_DIFF, y=constants.OBSERVED_ACCURACY, hue=constants.CONDITION,
                        palette=['green', 'orange'], legend='full', truncate=False)
         g.set(ylim=(0, None))
+        g.set(xlim=(0, None))
         ax = plt.gca()
-        ax.set_title(f"Observed accuracy within time differences across conditions 6-2/6-4\nwith"
+        ax.set_title(f"Observed accuracy within time differences across conditions 3-4/6-4\nwith"
                      f"{'' if feedback else ' no'} feedback")
         for t, l in zip(g._legend.texts, [constants.CONDITIONS_DICT[2], constants.CONDITIONS_DICT[4]]):
             t.set_text(l)
@@ -165,9 +167,11 @@ class ShortTermLearningAcrossConditions:
         df = self.da.get_within_condition_observed_accuracy_over_time_difference_all_conditions(True)
         for condition in constants.CONDITIONS:
             df[constants.CONDITION] = df[constants.CONDITION].replace([condition], constants.CONDITIONS_DICT[condition])
+        df = df[df[constants.TIME_DIFF] >= constants.MINIMAL_TIME_DIFF]
         g = sns.scatterplot(data=df, x=constants.TIME_DIFF, y=constants.OBSERVED_ACCURACY, hue=constants.CONDITION,
                             palette="deep")
         g.set(ylim=(0, None))
+        g.set(xlim=(0, None))
 
         plt.savefig(f"observed_accuracy_within_time_difference.pdf")
         plt.clf()

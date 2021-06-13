@@ -30,8 +30,7 @@ def main():
     stl_analyser.observed_accuracy_within_time_differences_conditions_2_4(True)
     stl_analyser.observed_accuracy_within_time_differences_conditions_2_4(False)
 
-    stl_analyser.average_accuracy_over_sleep_quality()
-
+    # stl_analyser.average_accuracy_over_sleep_quality()
 
 
 if __name__ == '__main__':
